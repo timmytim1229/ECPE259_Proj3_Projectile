@@ -23,6 +23,8 @@
 *.rar
 *.tar
 *.zip
+*.war
+*.ear
 
 # Logs and databases #
 ######################
@@ -47,3 +49,8 @@ project3_projectile_tiva/project3_projectile/.launches
 project3_projectile_tiva/project3_projectile/.settings
 project3_projectile_tiva/project3_projectile/Debug
 project3_projectile_tiva/project3_projectile/targetConfigs
+
+SerialTest/RemoteSystemsTempFiles
+SerialTest/.metadata/
+SerialTest/.classpath
+SerialTest/.settings/
