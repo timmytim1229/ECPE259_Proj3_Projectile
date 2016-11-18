@@ -1,0 +1,49 @@
+# Compiled source #
+###################
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+*.ccsproject
+*.cproject
+*.project
+*.cmd
+
+# Packages #
+############
+# it's better to unpack these files and commit the raw source
+# git has its own built in compression methods
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Logs and databases #
+######################
+*.log
+*.sql
+*.sqlite
+
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+project3_projectile_tiva/.metadata
+project3_projectile_tiva/dvt
+project3_projectile_tiva/RemoteSystemsTempFiles
+project3_projectile_tiva/project3_projectile/.launches
+project3_projectile_tiva/project3_projectile/.settings
+project3_projectile_tiva/project3_projectile/Debug
+project3_projectile_tiva/project3_projectile/targetConfigs
