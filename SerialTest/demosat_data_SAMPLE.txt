@@ -1,0 +1,14 @@
+{"sensorName":"temp","unit":"C","value":25.31,"cs":463}
+{"sensorName":"temp","unit":"C","value":25.31,"cs":463}
+{"sensorName":"temp","unit":"C","value":25.31,"cs":463}
+{"sensorName":"temp","unit":"C","value":25.31,"cs":463}
+{"sensorName":"temp","unit":"C","value":25.31,"cs":463}
+{"sensorName":"temp","unit":"C","value":25.31,"cs":463}
+{"sensorName":"temp","unit":"C","value":25.31,"cs":463}
+{"sensorName":"temp","unit":"C","value":25.31,"cs":463}
+{"sensorName":"temp","unit":"C","value":25.31,"cs":463}
+{"sensorName":"temp","unit":"C","value":25.31,"cs":463}
+{"sensorName":"temp","unit":"C","value":25.31,"cs":463}
+{"sensorName":"temp","unit":"C","value":25.31,"cs":463}
+{"sensorName":"temp","unit":"C","value":25.31,"cs":463}
+
