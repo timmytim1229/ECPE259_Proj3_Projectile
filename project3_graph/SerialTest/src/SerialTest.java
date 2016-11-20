@@ -63,17 +63,17 @@ public class SerialTest implements SerialPortEventListener {
     private static final char TEMPERATURE_ID = 'T';
 
     // Sensor vectors for input stream
-    public static Vector accel_x_vector = new Vector(3,1);
-    public static Vector accel_y_vector = new Vector(3,1);
-    public static Vector accel_z_vector = new Vector(3,1);
-    public static Vector bar_vector = new Vector(3,1);
-    public static Vector gyro_x_vector = new Vector(3,1);	// init size 3, add 1 value ahead of currently filled value
-    public static Vector gyro_y_vector = new Vector(3,1);
-    public static Vector gyro_z_vector = new Vector(3,1);
-    public static Vector mag_x_vector = new Vector(3,1);
-    public static Vector mag_y_vector = new Vector(3,1);
-    public static Vector mag_z_vector = new Vector(3,1);
-    public static Vector temperature_vector = new Vector(3,1);
+    public static Vector<Double> accel_x_vector = new Vector<Double>(3,1);
+    public static Vector<Double> accel_y_vector = new Vector<Double>(3,1);
+    public static Vector<Double> accel_z_vector = new Vector<Double>(3,1);
+    public static Vector<Double> bar_vector = new Vector<Double>(3,1);
+    public static Vector<Double> gyro_x_vector = new Vector<Double>(3,1);	// init size 3, add 1 value ahead of currently filled value
+    public static Vector<Double> gyro_y_vector = new Vector<Double>(3,1);
+    public static Vector<Double> gyro_z_vector = new Vector<Double>(3,1);
+    public static Vector<Double> mag_x_vector = new Vector<Double>(3,1);
+    public static Vector<Double> mag_y_vector = new Vector<Double>(3,1);
+    public static Vector<Double> mag_z_vector = new Vector<Double>(3,1);
+    public static Vector<Double> temperature_vector = new Vector<Double>(3,1);
 
     
     // Sensor time series (ts) initialization for real time plots
@@ -87,7 +87,7 @@ public class SerialTest implements SerialPortEventListener {
     static TimeSeries mag_x_ts = new TimeSeries("barometer_data", Millisecond.class);
     static TimeSeries mag_y_ts = new TimeSeries("barometer_data", Millisecond.class);
     static TimeSeries mag_z_ts = new TimeSeries("barometer_data", Millisecond.class);
-    static TimeSeries temperature_ts = new TimeSeries("barometer_data", Millisecond.class);
+    static TimeSeries temperature_ts = new TimeSeries("temperature_data", Millisecond.class);
 
     
     // Parser Object
@@ -170,8 +170,8 @@ public class SerialTest implements SerialPortEventListener {
 				char [] input_array = new char[20]; // TODO: needs length of packet
 				char check_char;
 				int len = 0;
-				int i = 0;
-				int value;
+				int value, value_msb, value_lsb;
+				double p_value; 					// precise value
 
 				check_char = (char)input_chars.read();				
 				System.out.println("1st Input Char = " + check_char);
@@ -180,95 +180,99 @@ public class SerialTest implements SerialPortEventListener {
 					//wait for S
 					check_char = (char)input_chars.read();
 				}
-				//value = Integer.parseInt(input.readLine());
-				//System.out.println("1st Line = " + value);
-
 				
-				//check_char = (char)input_chars.read();
-				//check_char = (char)input.readLine();
-				
-				
-				if(check_char == 'S')	// start packet read					
-				{
-					//len = input_chars.read(); 		// next byte in packet is length of packet
+				// start packet read
+				if(check_char == 'S') {		
 					
 					// See what the next char is
 					check_char = (char)input_chars.read();
-					do
-					{
-						System.out.println("Input Char = " + check_char);
-						// Acceleration data
-						if(check_char == ACCEL_ID)
-						{						
-							value = Integer.parseInt(input.readLine());			// convert input string to int
-							//value = (double)value / 8192.0;
-							System.out.println("Accel Value_x = " + value);
-							accel_x_vector.addElement(new Double(value));		// Save to vector
-							accel_x_ts.addOrUpdate(new Millisecond(), value);	// Save to time	series					
+					do{	
+						
+						// read accleration data
+						for(int i = 0; i < 3; i++) {
+							//construct value from 2 chars
+							value_msb = input_chars.read();
+							value_lsb = input_chars.read();
+							value = value_msb << 8 | value_lsb;					
+							p_value = (double)value / 8192.0;
 							
-							value = Integer.parseInt(input.readLine());			// convert input string to int
-							//value = (double)value / 8192.0;
-							System.out.println("Accel Value_y = " + value);
-							accel_y_vector.addElement(new Double(value));		// Save to vector
-							accel_y_ts.addOrUpdate(new Millisecond(), value);	// Save to time	series
-								
-							value = Integer.parseInt(input.readLine());			// convert input string to int
-							//value = (double)value / 8192.0;
-							System.out.println("Accel Value_z = " + value);
-							accel_z_vector.addElement(new Double(value));		// Save to vector
-							accel_z_ts.addOrUpdate(new Millisecond(), value);	// Save to time	series
-						}
-						else if (check_char == BAROMETER_ID)
-						{
-							value = Integer.parseInt(input.readLine());			// convert input string to int
-							System.out.println("Barometer Value = " + value);
-							bar_vector.addElement(new Double(value));			// Save to vector
-							bar_ts.addOrUpdate(new Millisecond(), value);		// Save to time	series
-						}
-						else if (check_char == GYRO_ID)
-						{
-							value = Integer.parseInt(input.readLine());			// convert input string to int
-							System.out.println("Gyro Value_x = " + value);
-							gyro_x_vector.addElement(new Double(value));		// Save to vector
-							gyro_x_ts.addOrUpdate(new Millisecond(), value);	// Save to time	series
-							
-							value = Integer.parseInt(input.readLine());			// convert input string to int
-							System.out.println("Gyro Value_y = " + value);
-							gyro_y_vector.addElement(new Double(value));		// Save to vector
-							gyro_y_ts.addOrUpdate(new Millisecond(), value);	// Save to time	series
-							
-							value = Integer.parseInt(input.readLine());			// convert input string to int
-							System.out.println("Gyro Value_z = " + value);
-							gyro_z_vector.addElement(new Double(value));		// Save to vector
-							gyro_z_ts.addOrUpdate(new Millisecond(), value);	// Save to time	series
-						}
-						else if (check_char == MAGNETOMETER_ID)
-						{
-							value = Integer.parseInt(input.readLine());			// convert input string to int
-							System.out.println("Magnetometer Value_x = " + value);
-							mag_x_vector.addElement(new Double(value));			// Save to vector
-							mag_x_ts.addOrUpdate(new Millisecond(), value);		// Save to time	series
-							
-							value = Integer.parseInt(input.readLine());			// convert input string to int
-							System.out.println("Magnetometer Value_y = " + value);
-							mag_y_vector.addElement(new Double(value));			// Save to vector
-							mag_y_ts.addOrUpdate(new Millisecond(), value);		// Save to time	series
-							
-							value = Integer.parseInt(input.readLine());			// convert input string to int
-							System.out.println("Magnetometer Value_y = " + value);
-							mag_z_vector.addElement(new Double(value));			// Save to vector
-							mag_z_ts.addOrUpdate(new Millisecond(), value);		// Save to time	series			
-						}
-						else if (check_char == TEMPERATURE_ID)
-						{
-							value = Integer.parseInt(input.readLine());			// convert input string to int
-							System.out.println("Temperature Value_x = " + value);
-							temperature_vector.addElement(new Double(value));			// Save to vector
-							temperature_ts.addOrUpdate(new Millisecond(), value);		// Save to time	series}
+							if(i == 0) {
+								System.out.println("Accel Value_x = " + p_value);
+								accel_x_vector.addElement(new Double(p_value));		// Save to vector
+								accel_x_ts.addOrUpdate(new Millisecond(), value);	// Save to time	series	
+							} else if(i == 1) {
+								System.out.println("Accel Value_y = " + p_value);
+								accel_y_vector.addElement(new Double(p_value));		// Save to vector
+								accel_y_ts.addOrUpdate(new Millisecond(), p_value);	// Save to time	series
+							} else {
+								System.out.println("Accel Value_z = " + p_value);
+								accel_z_vector.addElement(new Double(p_value));		// Save to vector
+								accel_z_ts.addOrUpdate(new Millisecond(), p_value);	// Save to time	series
+							}
 						}
 						
+						// See what the next char is
 						check_char = (char)input_chars.read();
-					} while(check_char != 'X');	
+						System.out.println(check_char);
+						
+						// read temperature data
+						value_msb = input_chars.read();
+						value_lsb = input_chars.read();
+						value = value_msb << 8 | value_lsb;		
+						p_value = (double)value / 340.0 + 36.53;
+						
+						System.out.println("Temperature Value = " + value);
+						temperature_vector.addElement(new Double(value));			// Save to vector
+						temperature_ts.addOrUpdate(new Millisecond(), value);		// Save to time	series
+						
+						// See what the next char is
+						check_char = (char)input_chars.read();
+						System.out.println(check_char);
+						
+						for(int i = 0; i < 3; i++) {
+							//construct value from 2 chars
+							value_msb = input_chars.read();
+							value_lsb = input_chars.read();
+							value = value_msb << 8 | value_lsb;					
+							p_value = (double)value / 939.650784;
+							
+							if(i == 0) {
+								System.out.println("Gyro Value_x = " + value);
+								gyro_x_vector.addElement(new Double(value));		// Save to vector
+								gyro_x_ts.addOrUpdate(new Millisecond(), value);	// Save to time	series
+							} else if(i == 1) {
+								System.out.println("Gyro Value_y = " + value);
+								gyro_y_vector.addElement(new Double(value));		// Save to vector
+								gyro_y_ts.addOrUpdate(new Millisecond(), value);	// Save to time	series
+							} else {
+								System.out.println("Gyro Value_z = " + value);
+								gyro_z_vector.addElement(new Double(value));		// Save to vector
+								gyro_z_ts.addOrUpdate(new Millisecond(), value);	// Save to time	series
+							}
+						}
+							
+//						else if (check_char == MAGNETOMETER_ID)
+//						{
+//							value = Integer.parseInt(input.readLine());			// convert input string to int
+//							System.out.println("Magnetometer Value_x = " + value);
+//							mag_x_vector.addElement(new Double(value));			// Save to vector
+//							mag_x_ts.addOrUpdate(new Millisecond(), value);		// Save to time	series
+//							
+//							value = Integer.parseInt(input.readLine());			// convert input string to int
+//							System.out.println("Magnetometer Value_y = " + value);
+//							mag_y_vector.addElement(new Double(value));			// Save to vector
+//							mag_y_ts.addOrUpdate(new Millisecond(), value);		// Save to time	series
+//							
+//							value = Integer.parseInt(input.readLine());			// convert input string to int
+//							System.out.println("Magnetometer Value_y = " + value);
+//							mag_z_vector.addElement(new Double(value));			// Save to vector
+//							mag_z_ts.addOrUpdate(new Millisecond(), value);		// Save to time	series			
+//						}
+						
+						check_char = (char)input_chars.read();
+						if(check_char != '\n')
+							System.out.println("ERROR, LAST CHARACTER IS NOT \n!");
+					} while(check_char != '\n');	
 				}
 				
 				
