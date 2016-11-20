@@ -6,10 +6,6 @@
 *.exe
 *.o
 *.so
-*.ccsproject
-*.cproject
-*.project
-*.cmd
 
 # Packages #
 ############
@@ -23,8 +19,6 @@
 *.rar
 *.tar
 *.zip
-*.war
-*.ear
 
 # Logs and databases #
 ######################
@@ -42,15 +36,29 @@
 ehthumbs.db
 Thumbs.db
 
-project3_projectile_tiva/.metadata
-project3_projectile_tiva/dvt
-project3_projectile_tiva/RemoteSystemsTempFiles
-project3_projectile_tiva/project3_projectile/.launches
-project3_projectile_tiva/project3_projectile/.settings
-project3_projectile_tiva/project3_projectile/Debug
-project3_projectile_tiva/project3_projectile/targetConfigs
+# Code Composer generated files #
+#################################
+*.launch
+*.prefs
+*.atsln
+*.xml
+*.cproj
+*.ccsproject
+*.cproject
+*.project
+*.cmd
+*.d
+*.opt
+*.obj
+*.map
 
-SerialTest/RemoteSystemsTempFiles
-SerialTest/.metadata/
-SerialTest/.classpath
-SerialTest/.settings/
+# Project Directories #
+#######################
+.metadata/
+dvt/
+RemoteSystemsTempFiles/
+.launches/
+.settings/
+Debug/
+targetConfigs/
+.vs/
