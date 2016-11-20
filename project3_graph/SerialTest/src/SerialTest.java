@@ -589,11 +589,11 @@ public class SerialTest implements SerialPortEventListener {
        frame.getContentPane().add(accel_x_label, BorderLayout.WEST);
        
        // Acceleration Y
-       ChartPanel accel_y_label = new ChartPanel(accel_x_chart);
+       ChartPanel accel_y_label = new ChartPanel(accel_y_chart);
        frame.getContentPane().add(accel_y_label, BorderLayout.CENTER);
        
        // Acceleration Z
-       ChartPanel accel_z_label = new ChartPanel(accel_x_chart);
+       ChartPanel accel_z_label = new ChartPanel(accel_z_chart);
        frame.getContentPane().add(accel_z_label, BorderLayout.EAST);
 
        
