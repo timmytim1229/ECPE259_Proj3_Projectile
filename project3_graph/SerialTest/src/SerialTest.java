@@ -34,21 +34,21 @@ import gnu.io.SerialPortEventListener;
 public class SerialTest implements SerialPortEventListener {
 	SerialPort serialPort;
     
-	/** The port we're normally going to use. */
+	// The ports normally used
 	private static final String PORT_NAMES[] = { 
-			"/dev/tty.usbserial-DA017QQD", "/dev/tty.usbmodem0E213EC1", "COM1", "COM2", "COM3", "COM4"};
+			"/dev/tty.usbserial-DA017QQD", 
+			"/dev/tty.usbmodem0E213EC1", 
+			"COM1", "COM2", "COM3", "COM4"};
 	/**
 	* A BufferedReader which will be fed by a InputStreamReader 
 	* converting the bytes into characters 
 	* making the displayed results codepage independent
 	*/
 	private BufferedReader input;
-	/** The output stream to the port */
 	private OutputStream output;
-	/** Milliseconds to block while waiting for port open */
-	private static final int TIME_OUT = 2000;
-	/** Default bits per second for COM port. */
-	private static final int DATA_RATE = 9600;
+	private static final int TIME_OUT = 2000;		// Milliseconds to block while waiting for port open
+	private static final int DATA_RATE = 9600;		// Default bits per second for serial port
+
 	
 	// The name of the file to open.
     static String fileName = "demosat_data_.txt";
@@ -56,42 +56,39 @@ public class SerialTest implements SerialPortEventListener {
     private BufferedReader input_chars;
         
     // Sensor identifier constants
-    private static final char ACCEL_ID = 'A';
-    private static final char BAROMETER_ID = 'B';
-    private static final char GYRO_ID = 'G';
-    private static final char MAGNETOMETER_ID = 'M';
-    private static final char TEMPERATURE_ID = 'T';
+//    private static final char ACCEL_ID = 'A';
+//    private static final char BAROMETER_ID = 'B';
+//    private static final char GYRO_ID = 'G';
+//    private static final char MAGNETOMETER_ID = 'M';
+//    private static final char TEMPERATURE_ID = 'T';
 
     // Sensor vectors for input stream
+    // init size 3, add 1 value ahead of currently filled value
     public static Vector<Double> accel_x_vector = new Vector<Double>(3,1);
     public static Vector<Double> accel_y_vector = new Vector<Double>(3,1);
     public static Vector<Double> accel_z_vector = new Vector<Double>(3,1);
     public static Vector<Double> bar_vector = new Vector<Double>(3,1);
-    public static Vector<Double> gyro_x_vector = new Vector<Double>(3,1);	// init size 3, add 1 value ahead of currently filled value
+    public static Vector<Double> gyro_x_vector = new Vector<Double>(3,1);
     public static Vector<Double> gyro_y_vector = new Vector<Double>(3,1);
     public static Vector<Double> gyro_z_vector = new Vector<Double>(3,1);
     public static Vector<Double> mag_x_vector = new Vector<Double>(3,1);
     public static Vector<Double> mag_y_vector = new Vector<Double>(3,1);
     public static Vector<Double> mag_z_vector = new Vector<Double>(3,1);
     public static Vector<Double> temperature_vector = new Vector<Double>(3,1);
-
     
     // Sensor time series (ts) initialization for real time plots
-    static TimeSeries accel_x_ts = new TimeSeries("accel_x_data", Millisecond.class);
-    static TimeSeries accel_y_ts = new TimeSeries("accel_y_data", Millisecond.class);
-    static TimeSeries accel_z_ts = new TimeSeries("accel_z_data", Millisecond.class);
-    static TimeSeries bar_ts = new TimeSeries("accel_x_data", Millisecond.class);
-    static TimeSeries gyro_x_ts = new TimeSeries("gyro_x_data", Millisecond.class);
-    static TimeSeries gyro_y_ts = new TimeSeries("gyro_y_data", Millisecond.class);
-    static TimeSeries gyro_z_ts = new TimeSeries("gyro_z_data", Millisecond.class);
-    static TimeSeries mag_x_ts = new TimeSeries("barometer_data", Millisecond.class);
-    static TimeSeries mag_y_ts = new TimeSeries("barometer_data", Millisecond.class);
-    static TimeSeries mag_z_ts = new TimeSeries("barometer_data", Millisecond.class);
-    static TimeSeries temperature_ts = new TimeSeries("temperature_data", Millisecond.class);
-
-    
-    // Parser Object
-    //JSONParser parser = new JSONParser();
+    //Millisecond.class goes into ts parameter
+    static TimeSeries accel_x_ts = new TimeSeries("accel_x_data");
+    static TimeSeries accel_y_ts = new TimeSeries("accel_y_data");
+    static TimeSeries accel_z_ts = new TimeSeries("accel_z_data");
+    static TimeSeries bar_ts = new TimeSeries("accel_x_data");
+    static TimeSeries gyro_x_ts = new TimeSeries("gyro_x_data");
+    static TimeSeries gyro_y_ts = new TimeSeries("gyro_y_data");
+    static TimeSeries gyro_z_ts = new TimeSeries("gyro_z_data");
+    static TimeSeries mag_x_ts = new TimeSeries("barometer_data");
+    static TimeSeries mag_y_ts = new TimeSeries("barometer_data");
+    static TimeSeries mag_z_ts = new TimeSeries("barometer_data");
+    static TimeSeries temperature_ts = new TimeSeries("temperature_data");
     
     /**
      * initialize() function
@@ -167,9 +164,9 @@ public class SerialTest implements SerialPortEventListener {
 		if (oEvent.getEventType() == SerialPortEvent.DATA_AVAILABLE) {		
 			try {				
 				//String input_Line = "";
-				char [] input_array = new char[20]; // TODO: needs length of packet
+				//char [] input_array = new char[20]; // TODO: needs length of packet
 				char check_char;
-				int len = 0;
+				//int len = 0;
 				int value, value_msb, value_lsb;
 				double p_value; 					// precise value
 
@@ -188,7 +185,7 @@ public class SerialTest implements SerialPortEventListener {
 					check_char = (char)input_chars.read();
 					do{	
 						
-						// read accleration data
+						// read acceleration data
 						for(int i = 0; i < 3; i++) {
 							//construct value from 2 chars
 							value_msb = input_chars.read();
@@ -276,172 +273,7 @@ public class SerialTest implements SerialPortEventListener {
 				}
 				
 				
-				/*
-				// first thoughts on input
-				// See what char is next
 				
-				//check_char = (char)input_chars.read();
-				//System.out.println("Input Char = " + check_char);
-				
-				// Acceleration data
-				if(check_char == 'A')
-				{	
-					value = Integer.parseInt(input.readLine());			// convert input string to int
-					System.out.println("Value_x = " + value);
-					accel_x_vector.addElement(new Double(value));		// Save to vector
-					accel_x_ts.addOrUpdate(new Millisecond(), value);	// Save to time	series					
-					
-					value = Integer.parseInt(input.readLine());			// convert input string to int
-					System.out.println("Value_y = " + value);
-					accel_y_vector.addElement(new Double(value));		// Save to vector
-					accel_y_ts.addOrUpdate(new Millisecond(), value);	// Save to time	series
-						
-					value = Integer.parseInt(input.readLine());			// convert input string to int
-					System.out.println("Value_z = " + value);
-					accel_z_vector.addElement(new Double(value));		// Save to vector
-					accel_z_ts.addOrUpdate(new Millisecond(), value);	// Save to time	series
-										
-					
-					
-					
-					// Another way to capture data as chars only
-					// Capture acceleration_x data chars
-					while((char)input_chars.read() != '\n')
-					{
-						input_array[i] = (char)input_chars.read();
-						i++;
-					}
-					// Save to an int //TODO: Convert to g's later
-					int value = Integer.parseInt(new String(input_array));						
-					// Save to vector
-					accel_x_vector.addElement(new Double(value));						
-					// Save to timeseries //TODO: Make plotting cleaner
-					accel_x_ts.addOrUpdate(new Millisecond(), value);
-					i = 0;
-					
-					// Capture acceleration_y data chars
-					while((char)input_chars.read() != '\n')
-					{
-						input_array[i] = (char)input_chars.read();
-						i++;
-					}
-					// Save to an int //TODO: Convert to g's later
-					value = Integer.parseInt(new String(input_array));						
-					// Save to vector
-					accel_y_vector.addElement(new Double(value));						
-					// Save to timeseries //TODO: Make plotting cleaner
-					accel_y_ts.addOrUpdate(new Millisecond(), value);
-					i = 0;
-					
-					// Capture acceleration_z data chars
-					while((char)input_chars.read() != '\n')
-					{
-						input_array[i] = (char)input_chars.read();
-						i++;
-					}
-					// Save to an int //TODO: Convert to g's later
-					value = Integer.parseInt(new String(input_array));						
-					// Save to vector
-					accel_z_vector.addElement(new Double(value));						
-					// Save to timeseries //TODO: Make plotting cleaner
-					accel_z_ts.addOrUpdate(new Millisecond(), value);
-					i = 0;
-					
-				}		
-				 */
-				
-				
-													
-				
-				
-				
-				
-				
-				
-				/*
-				// Fix JSON formatting from Demosat
-				
-				inputLine = inputLine.replace("~", "");
-           	 	inputLine = inputLine.replace("|", "");
-           	 	if (inputLine.isEmpty()) {
-           		    inputLine = null; 
-           		}
-           	 	
-                //Parse each JSON line and plot the corresponding value
-            	 try {
-	            	 Object obj = parser.parse(inputLine);
-	
-	            	 JSONObject jsonObject = (JSONObject) obj;
-	
-	            	 String name = (String) jsonObject.get("sensorName");
-	            	 //System.out.println("SensorName = " + name);	            	 	            	 	            
-	            				
-	            	 String unit = (String) jsonObject.get("unit");
-	            	 //System.out.println("Unit = " + unit);
-	            	 
-	            	 Double value = (Double) jsonObject.get("value");
-	            	 //System.out.println("Value = " + value);
-	            				
-	            	 long cs = (long) jsonObject.get("cs");
-	            	 //System.out.println("CS = " + cs);
-
-	            	 if (name.equals("temp"))
-	            	 {
-	            		 System.out.println(inputLine);
-	            		 System.out.println("SensorName = " + name);
-	            		 System.out.println("Unit = " + unit);
-	            		 System.out.println("Value = " + value);
-	            		 System.out.println("CS = " + cs);
-	            		 
-	            		 // Add value to vector
-	            		 tempVector.addElement(new Double(value));
-	            		 
-	            		 // Add value to dataset
-	            		 ts.addOrUpdate(new Millisecond(), value);
-	            		 
-	            	 	 //System.out.println("Vector Element: " + (Double)tempVector.lastElement() + "\n");
-	            		// enumerate the elements in the vector.
-	            		 
-	            		 Enumeration tvEnum = tempVector.elements(); 
-	            		 while(tvEnum.hasMoreElements())
-	            		 {
-	            			 System.out.print(tvEnum.nextElement() + " ");
-	            			 System.out.println(); 
-	            		 }
-	            		 
-	            	 }
-	            	 else if (name.equals("luminosity"))
-	            	 {
-	            		 System.out.println(inputLine);
-	            		 System.out.println("SensorName = " + name);
-	            		 System.out.println("Unit = " + unit);
-	            		 System.out.println("Value = " + value);
-	            		 System.out.println("CS = " + cs);
-	            		 
-	            		 // Add value to vector
-	            		 //luminosityVector.addElement(new Double(value));
-	            		 
-	            		 // Add value to dataset
-	                     //ts2.addOrUpdate(new Millisecond(), (Double)luminosityVector.lastElement());
-	            		 ts2.addOrUpdate(new Millisecond(), value);
-	            		 
-	            		 //System.out.println("Vector Element: " + (Double)luminosityVector.lastElement() + "\n");
-	            		 
-	            		 Enumeration lvEnum = luminosityVector.elements(); 
-	            		 while(lvEnum.hasMoreElements())
-	            		 {
-	            			 System.out.print(lvEnum.nextElement() + " ");
-	            			 System.out.println(); 
-	            		 }
-	            		 
-	            	 }	                	      	 	            		 	            	 
-            	} 
-            	catch (ParseException e) {
-            			//e.printStackTrace();
-            			System.out.println("Incomplete data. Setting current line to null.\n");
-            			inputLine = null;           			
-            		}
-            	 */
 				/*
             	 try(FileWriter fw = new FileWriter(fileName, true);
               		    BufferedWriter bw = new BufferedWriter(fw);
@@ -557,24 +389,6 @@ public class SerialTest implements SerialPortEventListener {
         accel_z_axis.setAutoRange(true);
         accel_z_axis.setFixedAutoRange(60000.0);
         
-        /*
-        TimeSeriesCollection dataset2 = new TimeSeriesCollection(ts2);
-        JFreeChart chart2 = ChartFactory.createTimeSeriesChart(
-            "Luminosity",
-            "Time",
-            "Value (Lux)",
-            dataset2,
-            true,
-            true,
-            false
-        );
-       final XYPlot plot2 = chart2.getXYPlot();
-       ValueAxis axis2 = plot2.getDomainAxis();
-       axis2.setAutoRange(true);
-       axis2.setFixedAutoRange(60000.0);
-       XYItemRenderer renderer = plot2.getRenderer();
-       renderer.setSeriesPaint(0, Color.blue);
-       */
        
        
        
@@ -596,11 +410,6 @@ public class SerialTest implements SerialPortEventListener {
        ChartPanel accel_z_label = new ChartPanel(accel_z_chart);
        frame.getContentPane().add(accel_z_label, BorderLayout.EAST);
 
-       
-       /*
-       ChartPanel label2 = new ChartPanel(chart2);
-       frame.getContentPane().add(label2, BorderLayout.EAST);
-       */
         
        frame.pack();
        frame.setVisible(true);          		
