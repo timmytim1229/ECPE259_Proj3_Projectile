@@ -32,8 +32,6 @@
 #include "SD/microSD.h"
 #include "SD/spi_SD.h"
 
-#include "i2cimu.h"
-
 // globals for current state
 float accel_x_g;
 float accel_y_g;
@@ -102,83 +100,6 @@ void writeSDMPU(char *data)
 	f_close(&LogFile);
 }
 
-void I2CStartup()
-{
-
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_I2C1);							// Enable the I2C module
-
-    SysCtlPeripheralReset(SYSCTL_PERIPH_I2C1);							// reset module
-
-	// configure pins for I2C1 line
-	GPIOPinConfigure(GPIO_PA6_I2C1SCL);
-	GPIOPinConfigure(GPIO_PA7_I2C1SDA);
-	GPIOPinTypeI2CSCL(GPIO_PORTA_BASE, GPIO_PIN_6);
-    GPIOPinTypeI2C(GPIO_PORTA_BASE, GPIO_PIN_7);
-    while(!SysCtlPeripheralReady(SYSCTL_PERIPH_I2C1)){}
-
-
-    I2CMasterInitExpClk(I2C1_BASE, SysCtlClockGet(), true);				// initialize I2C Master block w/ 400kbps data rate
-
-    //clear I2C FIFOs
-    //HWREG(I2C1_BASE + I2C_1_FIFOCTL) = 80008000;
-}
-
-// 1. enacts protocol for GY-86 Sensor package
-// write address to read from/write to
-// write or read data
-void I2CSendValue(uint32_t i2c_base, uint8_t slave_addr, uint8_t reg, uint8_t value)
-{
-	I2CMasterSlaveAddrSet(i2c_base, slave_addr, false);						// write to slave_addr
-
-	I2CMasterDataPut(i2c_base, reg);										// write register address
-	I2CMasterControl(i2c_base, I2C_MASTER_CMD_BURST_SEND_START);
-		while(I2CMasterBusy(i2c_base));										// wait for MCU to finish transaction
-
-	I2CMasterDataPut(i2c_base, value);										// write value to register
-	I2CMasterControl(i2c_base, I2C_MASTER_CMD_BURST_SEND_FINISH);
-	while(I2CMasterBusy(i2c_base));											// while not busy
-}
-
-void I2CReadValue(uint32_t i2c_base, uint8_t byte_count, uint8_t slave_addr, uint8_t reg_start, uint8_t *buffer)
-{
-	int bcm1;
-	uint32_t temp_val = 0;
-
-	I2CMasterSlaveAddrSet(i2c_base, slave_addr, false);						// write to slave_addr
-	I2CMasterDataPut(i2c_base, reg_start);									// specify what register to read from
-    I2CMasterControl(i2c_base, I2C_MASTER_CMD_SINGLE_SEND);					// send control byte and register address byte to slave device
-    while(I2CMasterBusy(i2c_base));											// wait for MCU to finish transaction
-
-    I2CMasterSlaveAddrSet(i2c_base, slave_addr, true);						// read from slave_addr
-
-    if(byte_count > 1) {
-		I2CMasterControl(i2c_base, I2C_MASTER_CMD_BURST_RECEIVE_START);
-		while(I2CMasterBusy(i2c_base));										// wait for MCU to finish transaction
-		temp_val = I2CMasterDataGet(i2c_base);
-		*buffer++ = (uint8_t)temp_val;
-
-		bcm1 = byte_count - 1;
-
-		while(bcm1-- > 1){
-			I2CMasterControl(i2c_base, I2C_MASTER_CMD_BURST_RECEIVE_CONT);
-			while(I2CMasterBusy(i2c_base));									// wait for MCU to finish transaction
-			temp_val = I2CMasterDataGet(i2c_base);
-			*buffer++ = (uint8_t)temp_val;
-		}
-
-		I2CMasterControl(i2c_base, I2C_MASTER_CMD_BURST_RECEIVE_FINISH);
-		while(I2CMasterBusy(i2c_base));										// wait for MCU to finish transaction
-		temp_val = I2CMasterDataGet(i2c_base);
-		*buffer++ = (uint8_t)temp_val;
-
-    } else { //byte_count == 1
-    	I2CMasterControl(i2c_base, I2C_MASTER_CMD_SINGLE_RECEIVE);
-		while(I2CMasterBusy(i2c_base));										// wait for MCU to finish transaction
-		temp_val = I2CMasterDataGet(i2c_base);
-		*buffer = (uint8_t)temp_val;
-    }
-}
-
 
 void UARTStartup()
 {
@@ -202,9 +123,86 @@ void UARTStartup()
          UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE |
          UART_CONFIG_PAR_NONE);
 
-    UARTConfigSetExpClk(UART1_BASE, SysCtlClockGet(), 9600,
+    UARTConfigSetExpClk(UART1_BASE, SysCtlClockGet(), 57600,
          UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE |
          UART_CONFIG_PAR_NONE);
+}
+
+void I2CStartup()
+{
+	// Enable the I2C module
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_I2C1);
+    // reset module
+    SysCtlPeripheralReset(SYSCTL_PERIPH_I2C1);
+
+	// configure pins for I2C1 line
+	GPIOPinConfigure(GPIO_PA6_I2C1SCL);
+	GPIOPinConfigure(GPIO_PA7_I2C1SDA);
+	GPIOPinTypeI2CSCL(GPIO_PORTA_BASE, GPIO_PIN_6);
+    GPIOPinTypeI2C(GPIO_PORTA_BASE, GPIO_PIN_7);
+    while(!SysCtlPeripheralReady(SYSCTL_PERIPH_I2C1)){}
+
+    // initialize I2C Master block w/ 400kbps data rate
+    I2CMasterInitExpClk(I2C1_BASE, SysCtlClockGet(), true);
+
+    //clear I2C FIFOs
+    //HWREG(I2C1_BASE + I2C_1_FIFOCTL) = 80008000;
+}
+
+// 1. enacts protocol for GY-86 Sensor package
+// write address to read from/write to
+// write or read data
+void I2CSendValue(uint32_t i2c_base, uint8_t slave_addr, uint8_t reg, uint8_t value)
+{
+	I2CMasterSlaveAddrSet(i2c_base, slave_addr, false);					// write to slave_addr
+
+	I2CMasterDataPut(i2c_base, reg);									// write register address
+	I2CMasterControl(i2c_base, I2C_MASTER_CMD_BURST_SEND_START);
+	while(I2CMasterBusy(i2c_base));										// wait for MCU to finish transaction
+
+	I2CMasterDataPut(i2c_base, value);									// write value to register
+	I2CMasterControl(i2c_base, I2C_MASTER_CMD_BURST_SEND_FINISH);
+	while(I2CMasterBusy(i2c_base));										// while not busy
+}
+
+void I2CReadValue(uint32_t i2c_base, uint8_t byte_count, uint8_t slave_addr, uint8_t reg_start, uint8_t *buffer)
+{
+	int bcm1;
+	uint32_t temp_val = 0;
+
+	I2CMasterSlaveAddrSet(i2c_base, slave_addr, false);						//write to slave_addr
+	I2CMasterDataPut(i2c_base, reg_start);									//specify what register to read from
+    I2CMasterControl(i2c_base, I2C_MASTER_CMD_SINGLE_SEND);					//send control byte and register address byte to slave device
+    while(I2CMasterBusy(i2c_base));											//wait for MCU to finish transaction
+
+    I2CMasterSlaveAddrSet(i2c_base, slave_addr, true);						// read from slave_addr
+
+    if(byte_count > 1) {
+		I2CMasterControl(i2c_base, I2C_MASTER_CMD_BURST_RECEIVE_START);
+		while(I2CMasterBusy(i2c_base));										//wait for MCU to finish transaction
+		temp_val = I2CMasterDataGet(i2c_base);
+		*buffer++ = (uint8_t)temp_val;
+
+		bcm1 = byte_count - 1;
+
+		while(bcm1-- > 1){
+			I2CMasterControl(i2c_base, I2C_MASTER_CMD_BURST_RECEIVE_CONT);
+			while(I2CMasterBusy(i2c_base));									//wait for MCU to finish transaction
+			temp_val = I2CMasterDataGet(i2c_base);
+			*buffer++ = (uint8_t)temp_val;
+		}
+
+		I2CMasterControl(i2c_base, I2C_MASTER_CMD_BURST_RECEIVE_FINISH);
+		while(I2CMasterBusy(i2c_base));										//wait for MCU to finish transaction
+		temp_val = I2CMasterDataGet(i2c_base);
+		*buffer++ = (uint8_t)temp_val;
+
+    } else { //byte_count == 1
+    	I2CMasterControl(i2c_base, I2C_MASTER_CMD_SINGLE_RECEIVE);
+		while(I2CMasterBusy(i2c_base));										//wait for MCU to finish transaction
+		temp_val = I2CMasterDataGet(i2c_base);
+		*buffer = (uint8_t)temp_val;
+    }
 }
 
 void configureIMU(uint32_t i2c_base)
@@ -236,134 +234,45 @@ void configureIMU(uint32_t i2c_base)
 }
 
 
-void readMPU6050()
+void readMPU6050(uint32_t uart_base, uint32_t i2c_base)
 {
 	uint8_t rx_buffer[20];
 	char send_array[16];
 	int i = 0;
 
-	// read MPU6050
-	I2CReadValue(I2C1_BASE, 20, MPU6050_ADDRESS, 0x3B, rx_buffer);
+	// obtain data from MPU650 (20 bytes, register 0x3B)
+  // bytes 0-5 = accel data
+  // bytes 6-7 = temperature data
+  // bytes 8-13 = gyro data
+  // bytes 14-19 = magno data
+	I2CReadValue(i2c_base, 20, MPU6050_ADDRESS, 0x3B, rx_buffer);
 
-	// extract the raw values
-/*
-	int16_t  accel_x  = rx_buffer[0]  << 8 | rx_buffer[1];
-	int16_t  accel_y  = rx_buffer[2]  << 8 | rx_buffer[3];
-	int16_t  accel_z  = rx_buffer[4]  << 8 | rx_buffer[5];
-	int16_t  mpu_temp = rx_buffer[6]  << 8 | rx_buffer[7];
-	int16_t  gyro_x   = rx_buffer[8]  << 8 | rx_buffer[9];
-	int16_t  gyro_y   = rx_buffer[10] << 8 | rx_buffer[11];
-	int16_t  gyro_z   = rx_buffer[12] << 8 | rx_buffer[13];
-	int16_t  magn_x   = rx_buffer[14] << 8 | rx_buffer[15];
-	int16_t  magn_y   = rx_buffer[16] << 8 | rx_buffer[17];
-	int16_t  magn_z   = rx_buffer[18] << 8 | rx_buffer[19];
+  // send label to start data packet
+  UARTCharPut(uart_base, 'S');
+  UARTCharPut(uart_base, 'A');
+  for(i = 0; i <= 13; i++){
+    UARTCharPut(uart_base, rx_buffer[i]);
 
-	// convert accelerometer readings into G's
-	accel_x_g = accel_x / 8192.0f;
-	accel_y_g = accel_y / 8192.0f;
-	accel_z_g = accel_z / 8192.0f;
+    //after every two bytes, send a delimiter
+//    if(i%2 != 0){
+//      UARTCharPut(uart_base, '\n');
+//    }
 
-	// convert temperature reading into degrees Celsius
-	mpu_temp_c = mpu_temp / 340.0f + 36.53f;
+    // send temp data label
+    if(i == 5){
+      UARTCharPut(uart_base, 'T');
+      //UARTCharPut(uart_base, '\n');
+    }
 
-	// convert gyro readings into Radians per second
-	gyro_x_rad = gyro_x / 939.650784f;
-	gyro_y_rad = gyro_y / 939.650784f;
-	gyro_z_rad = gyro_z / 939.650784f;
-
-	// convert magnetometer readings into Gauss's
-	magn_x_gs = magn_x / 660.0f;
-	magn_y_gs = magn_y / 660.0f;
-	magn_z_gs = magn_z / 660.0f;
-*/
-/*
-	// split all 16 bit values to 8 bit values to send over UART
-	rx_output[0] = accel_x_g & 0xff;
-	rx_output[1] = accel_x_g >> 8;
-	rx_output[2] = accel_y_g & 0xff;
-	rx_output[3] = accel_y_g >> 8;
-	rx_output[4] = accel_z_g & 0xff;
-	rx_output[5] = accel_z_g >> 8;
-
-	rx_output[6] = mpu_temp_c & 0xFF;
-	rx_output[7] = mpu_temp_c >> 8;
-
-	rx_output[8] = gyro_x & 0xFF;
-	rx_output[9] = gyro_x >> 8;
-	rx_output[10] = gyro_y & 0xFF;
-	rx_output[11] = gyro_y >> 8;
-	rx_output[12] = gyro_z & 0xFF;
-	rx_output[13] = gyro_z >> 8;*/
-
-	// send accel data
-	//UARTCharPut(UART0_BASE, '\0');
-
-	f_mount(&FatFs, "", 0); //Mount volume
-	f_open(&LogFile, "test.log", FA_WRITE | FA_OPEN_ALWAYS);
-	f_lseek(&LogFile, f_size(&LogFile));
-
-	f_printf(&LogFile, "%c", 'A');
-	f_printf(&LogFile, "%c", '1');
-	f_printf(&LogFile, "%c", ':');
-	for(i = 0; i <= 1; i++)
-		//UARTCharPut(UART0_BASE, rx_buffer[i]);
-		f_printf(&LogFile, "%x", rx_buffer[i]);
-	f_printf(&LogFile, "%c", '\n');
-
-	f_printf(&LogFile, "%c", 'A');
-	f_printf(&LogFile, "%c", '2');
-	f_printf(&LogFile, "%c", ':');
-	for(i = 2; i <= 3; i++)
-		//UARTCharPut(UART0_BASE, rx_buffer[i]);
-		f_printf(&LogFile, "%x", rx_buffer[i]);
-	f_printf(&LogFile, "%c", '\n');
-
-	f_printf(&LogFile, "%c", 'A');
-	f_printf(&LogFile, "%c", '3');
-	f_printf(&LogFile, "%c", ':');
-	for(i = 4; i <= 5; i++)
-		//UARTCharPut(UART0_BASE, rx_buffer[i]);
-		f_printf(&LogFile, "%x", rx_buffer[i]);
-	f_printf(&LogFile, "%c", '\n');
-
-	//UARTCharPut(UART0_BASE, '\0');
-	// send temperature data
-	f_printf(&LogFile, "%c", 'T');
-	f_printf(&LogFile, "%c", ':');
-	for(i = 6; i <= 7; i++)
-		//UARTCharPut(UART0_BASE, rx_buffer[i]);
-		f_printf(&LogFile, "%x", rx_buffer[i]);
-	f_printf(&LogFile, "%c", '\n');
-
-	//UARTCharPut(UART0_BASE, '\0');
-	// send gyro data
-	f_printf(&LogFile, "%c", 'G');
-	f_printf(&LogFile, "%c", '1');
-	f_printf(&LogFile, "%c", ':');
-	for(i = 8; i <= 9; i++)
-		//UARTCharPut(UART0_BASE, rx_buffer[i]);
-		f_printf(&LogFile, "%x", rx_buffer[i]);
-	f_printf(&LogFile, "%c", '\n');
-
-	f_printf(&LogFile, "%c", 'G');
-	f_printf(&LogFile, "%c", '2');
-	f_printf(&LogFile, "%c", ':');
-	for(i = 10; i <= 11; i++)
-		//UARTCharPut(UART0_BASE, rx_buffer[i]);
-		f_printf(&LogFile, "%x", rx_buffer[i]);
-	f_printf(&LogFile, "%c", '\n');
-
-	f_printf(&LogFile, "%c", 'G');
-	f_printf(&LogFile, "%c", '3');
-	f_printf(&LogFile, "%c", ':');
-	for(i = 12; i <= 13; i++)
-		//UARTCharPut(UART0_BASE, rx_buffer[i]);
-		f_printf(&LogFile, "%x", rx_buffer[i]);
-	f_printf(&LogFile, "%c", '\n');
-
-
-	f_close(&LogFile);
+    // send temp data label
+    if(i == 7){
+      UARTCharPut(uart_base, 'G');
+      //UARTCharPut(uart_base, '\n');
+    }
+  }
+  UARTCharPut(uart_base, '\n');
 }
+
 
 void readMS5611()
 {
@@ -454,6 +363,12 @@ void mpu6050test()
 	UARTCharPut(UART0_BASE, test_val);
 }
 
+void uartTest()
+{
+	UARTCharPut(UART1_BASE, 's');
+	UARTCharPut(UART0_BASE, 'a');
+}
+
 
 int main(void)
 {
@@ -474,7 +389,7 @@ int main(void)
     // Enable UART0_BASE
     UARTEnable(UART0_BASE);
     // Enable UART1_BASE
-    //UARTEnable(UART1_BASE);
+    UARTEnable(UART1_BASE);
 
 
     //while(UARTCharsAvail(UART1_BASE)){
@@ -482,9 +397,10 @@ int main(void)
     	// read GPS data from UART1
      	//readGPS();
     	//mpu6050test();
-    	readMPU6050();
-    	readMS5611();
+    	readMPU6050(UART1_BASE, I2C1_BASE);
+    	//readMS5611();
 
+    	//uartTest();
     	// read whoami: 0x75, should get 68 from it
 
     }
