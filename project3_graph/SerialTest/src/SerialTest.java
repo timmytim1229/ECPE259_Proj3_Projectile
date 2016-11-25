@@ -6,6 +6,11 @@ import java.io.OutputStream;
 import java.util.Enumeration;
 import java.util.Vector;
 
+// Import for pause
+import java.util.concurrent.TimeUnit;
+
+import java.text.Normalizer;
+
 //import java.util.Random;
 import javax.swing.JFrame;
 
@@ -37,7 +42,7 @@ public class SerialTest implements SerialPortEventListener {
 	// The ports normally used
 	private static final String PORT_NAMES[] = { 
 			"/dev/tty.usbserial-DA017QQD", 
-			"/dev/tty.usbmodem0E213EC1", 
+			"/dev/tty.usbmodem0E2147C1", 
 			"COM1", "COM2", "COM3", "COM4"};
 	/**
 	* A BufferedReader which will be fed by a InputStreamReader 
@@ -46,7 +51,7 @@ public class SerialTest implements SerialPortEventListener {
 	*/
 	private BufferedReader input;
 	private OutputStream output;
-	private static final int TIME_OUT = 2000;		// Milliseconds to block while waiting for port open
+	private static final int TIME_OUT = 5000;		// Milliseconds to block while waiting for port open
 	private static final int DATA_RATE = 9600;		// Default bits per second for serial port
 
 	
@@ -54,6 +59,7 @@ public class SerialTest implements SerialPortEventListener {
     static String fileName = "demosat_data_.txt";
     
     private BufferedReader input_chars;
+    
         
     // Sensor identifier constants
     private static final char ACCEL_ID = 'A';
@@ -174,6 +180,8 @@ public class SerialTest implements SerialPortEventListener {
 				int counter = 0;
 				char check_char;
 				double p_value; 					// precise value
+				//String stuff;
+				//Text j;
 
 				/*
 				 * Packet parsing with sensor receive verification
@@ -183,30 +191,122 @@ public class SerialTest implements SerialPortEventListener {
 				//System.out.println("1st Input Char = " + check_char);
 				
 				// Wait for an 'S' to start reading packet
-				while(check_char != START_ID)
-				{
-					check_char = (char)input_chars.read();
+				while(check_char != START_ID) {
+					check_char = (char)input_chars.read();				
+					System.out.println("IN WHILE = " + check_char);
 				}
 				
-				// Start packet read, use this 'if' as a secondardy check of start of packet
-				if(check_char == START_ID) {		
+				// Start packet read, use this 'if' as a secondary check of start of packet
+				if(check_char == START_ID) {
+					//System.out.println("START VALUE = " + check_char);
+					
+					/*
+					 *  Packet validation technique 1
+					 */
+//					while(check_char != NEWLINE) {
+//						// check the char
+//						check_char = (char)input_chars.read();
+//
+//						if (check_char == ACCEL_ID) {
+//							System.out.println("IN ACCELERATION");
+//
+//							for (counter = 0; counter < 3; counter++) {
+//								// Get MSB byte
+//								value_msb = input_chars.read();
+//								System.out.println("msb = " + value_msb);
+//								
+//								// Convert the byte to a char to compare to TEMPERATURE_ID
+//								//check_char = (char)value_msb;
+//								//System.out.println("check_char = " + check_char);
+//								
+//								value_lsb = input_chars.read();
+//								System.out.println("lsb = " + value_lsb);
+//
+//								// Contrsruct value from 2 bytes
+//								value = value_msb << 8 | value_lsb;	
+//								System.out.println("ACCELERATION Value = " + value);
+//
+//								p_value = (double)value / 8192.0;
+//							}
+//						}
+//						else if (check_char == TEMPERATURE_ID) {
+//							System.out.println("IN TEMPERATURE");
+//
+//							value_msb = input_chars.read();
+//							System.out.println("msb = " + value_msb);
+//
+//							value_lsb = input_chars.read();
+//							System.out.println("lsb = " + value_lsb);
+//							
+//							// Contrsruct value from 2 bytes
+//							value = value_msb << 8 | value_lsb;	
+//							System.out.println("Temperature Value = " + value);
+//
+//							p_value = (double)value / 340.0 + 36.53;							
+//						}
+//						else if (check_char == GYRO_ID) {
+//							System.out.println("IN GYRO");
+//
+//							for (counter = 0; counter < 3; counter++) {
+//								value_msb = input_chars.read();
+//								System.out.println("msb = " + value_msb);
+//								
+//								value_lsb = input_chars.read();
+//								System.out.println("lsb = " + value_lsb);
+//								
+//								// Contstruct value from 2 bytes
+//								value = value_msb << 8 | value_lsb;
+//								System.out.println("GYRO Value = " + value);
+//
+//								p_value = (double)value / 939.650784;
+//							}
+//						}
+//
+//					}
+//					System.out.println("END OF PACKET");
+
+						
+						
+					/*
+					 * Packet validation technique 2	
+					 */
 					
 					// See what the next char is
 					check_char = (char)input_chars.read();
+					//System.out.println("AFTER START = " + check_char);
 					
 					if(check_char == ACCEL_ID) {
-						
+						//System.out.println("ACCEL ID = " + check_char);
+
 						// Reset counter
 						counter = 0;
-						
+						//System.out.println("Counter = " + counter);
+
 						while(check_char != TEMPERATURE_ID) {
+							//System.out.println("in while Counter = " + counter);							
+
+							// Get MSB byte
 							value_msb = input_chars.read();
-							check_char = (char)value_msb;
-							value_lsb = input_chars.read();
+							//System.out.println("msb = " + value_msb);
 							
-							// Contrsruct value from 2 bytes
-							value = value_msb << 8 | value_lsb;					
+							// Convert the byte to a char to compare to TEMPERATURE_ID
+							check_char = (char)value_msb;
+							//System.out.println("check_char = " + check_char);
+							
+							if (check_char == TEMPERATURE_ID) {
+								break;
+							}
+							
+							value_lsb = input_chars.read();
+							//System.out.println("lsb = " + value_lsb);
+
+							// Construct value from 2 bytes
+							value = value_msb << 8 | value_lsb;	
+							
+							System.out.println("Accel val = " + value);
+
 							p_value = (double)value / 8192.0;
+							//System.out.println("ACCEL VALUE = " + p_value);
 							
 							if(counter == 0) {
 								System.out.println("Accel Value_x = " + p_value);
@@ -216,66 +316,86 @@ public class SerialTest implements SerialPortEventListener {
 								System.out.println("Accel Value_y = " + p_value);
 								accel_y_vector.addElement(new Double(p_value));		// Save to vector
 								accel_y_ts.addOrUpdate(new Millisecond(), p_value);	// Save to time	series
-							} else {
+							} else if (counter == 2) {
 								System.out.println("Accel Value_z = " + p_value);
 								accel_z_vector.addElement(new Double(p_value));		// Save to vector
 								accel_z_ts.addOrUpdate(new Millisecond(), p_value);	// Save to time	series
 							}
-							couter++;
+							counter++;
 						}
 					}
 					
 					if(check_char == TEMPERATURE_ID) {
 						
 						// Reset counter
-						couter = 0;
+						counter = 0;
 						
 						while(check_char != GYRO_ID) {
 							value_msb = input_chars.read();
 							check_char = (char)value_msb;
+							
+							if (check_char == GYRO_ID) {
+								break;
+							}
+							
 							value_lsb = input_chars.read();
 							
-							// Contrsruct value from 2 bytes
+							// Construct value from 2 bytes
 							value = value_msb << 8 | value_lsb;					
 							p_value = (double)value / 340.0 + 36.53;
 							
-							System.out.println("Temperature Value = " + value);
+							System.out.println("Temperature val = " + value);
+							System.out.println("Temperature Value = " + p_value);
+
 							temperature_vector.addElement(new Double(value));			// Save to vector
 							temperature_ts.addOrUpdate(new Millisecond(), value);		// Save to time	series
 							
-							couter++;
+							counter++;
 						}
 					}
 					
 					if(check_char == GYRO_ID) {
 						
 						// Reset counter
-						couter = 0;
+						counter = 0;
 						
 						while(check_char != NEWLINE) {
 							value_msb = input_chars.read();
 							check_char = (char)value_msb;
+							
+							if (check_char == NEWLINE) {
+								break;
+							}
+							
 							value_lsb = input_chars.read();
 							
-							// Contstruct value from 2 bytes
+							// Construct value from 2 bytes
 							value = value_msb << 8 | value_lsb;					
 							p_value = (double)value / 939.650784;
 							
 							if(counter == 0) {
 								System.out.println("Gyro Value_x = " + value);
+								System.out.println("Gyro Value_x = " + p_value);
+
 								gyro_x_vector.addElement(new Double(value));		// Save to vector
 								gyro_x_ts.addOrUpdate(new Millisecond(), value);	// Save to time	series
 							} else if(counter == 1) {
 								System.out.println("Gyro Value_y = " + value);
+								System.out.println("Gyro Value_y = " + p_value);
+
 								gyro_y_vector.addElement(new Double(value));		// Save to vector
 								gyro_y_ts.addOrUpdate(new Millisecond(), value);	// Save to time	series
-							} else {
+							} else if (counter == 2) {
 								System.out.println("Gyro Value_z = " + value);
+								System.out.println("Gyro Value_z = " + p_value);
+
 								gyro_z_vector.addElement(new Double(value));		// Save to vector
 								gyro_z_ts.addOrUpdate(new Millisecond(), value);	// Save to time	series
 							}							
-							couter++;
+							counter++;
 						}
+						System.out.println("END OF PACKET");
+
 					}				
 					
 					/*
@@ -403,21 +523,21 @@ public class SerialTest implements SerialPortEventListener {
 		}		
 	}
 	
-	public static char constructVal(void) {
-		int value, value_msb, value_lsb;
-		double p_value;
-		char char_check;
-		
-		value_msb = input_chars.read();
-		check_char = (char)value_msb;
-		value_lsb = input_chars.read();
-		
-		// Contstruct value from 2 bytes
-		//value = value_msb << 8 | value_lsb;					
-		//p_value = (double)value / 939.650784;	
-		
-		return char_check;
-		}
+//	public static char constructVal() {
+//		int value, value_msb, value_lsb;
+//		double p_value;
+//		char char_check;
+//		
+//		value_msb = input_chars.read();
+//		check_char = (char)value_msb;
+//		value_lsb = input_chars.read();
+//		
+//		// Construct value from 2 bytes
+//		//value = value_msb << 8 | value_lsb;					
+//		//p_value = (double)value / 939.650784;	
+//		
+//		return char_check;
+//		}
 
 	/**
 	 * Main.
@@ -441,6 +561,9 @@ public class SerialTest implements SerialPortEventListener {
 		};
 		t.start();
 		System.out.println("Started");
+		
+        String get = "aaa";
+
 		
 		/*
 		// Timestamp to file
@@ -473,8 +596,8 @@ public class SerialTest implements SerialPortEventListener {
         );
         final XYPlot accel_x_plot = accel_x_chart.getXYPlot();
         ValueAxis accel_x_axis = accel_x_plot.getDomainAxis();
-        accel_x_axis.setAutoRange(true);
-        accel_x_axis.setFixedAutoRange(60000.0); 
+        //accel_x_axis.setAutoRange(true);
+        //accel_x_axis.setFixedAutoRange(60000.0); 
 		
         // Acceleration Y
         TimeSeriesCollection accel_y_dataset = new TimeSeriesCollection(accel_y_ts);
@@ -489,9 +612,9 @@ public class SerialTest implements SerialPortEventListener {
         );
         final XYPlot accel_y_plot = accel_y_chart.getXYPlot();
         ValueAxis accel_y_axis = accel_y_plot.getDomainAxis();
-        accel_y_axis.setAutoRange(true);
-        accel_y_axis.setFixedAutoRange(60000.0);       
-        
+        //accel_y_axis.setAutoRange(true);
+        //accel_y_axis.setFixedAutoRange(60000.0);       
+
         // Acceleration Z
         TimeSeriesCollection accel_z_dataset = new TimeSeriesCollection(accel_z_ts);
         JFreeChart accel_z_chart = ChartFactory.createTimeSeriesChart(
@@ -505,32 +628,118 @@ public class SerialTest implements SerialPortEventListener {
         );
         final XYPlot accel_z_plot = accel_z_chart.getXYPlot();
         ValueAxis accel_z_axis = accel_z_plot.getDomainAxis();
-        accel_z_axis.setAutoRange(true);
-        accel_z_axis.setFixedAutoRange(60000.0);
+        //accel_z_axis.setAutoRange(true);
+        //accel_z_axis.setFixedAutoRange(60000.0);
         
+        // Temperature
+        TimeSeriesCollection temperature_dataset = new TimeSeriesCollection(temperature_ts);
+        JFreeChart temperature_chart = ChartFactory.createTimeSeriesChart(
+            "Temperature",
+            "Time",
+            "Value (C)",
+            temperature_dataset,
+            true,
+            true,
+            false
+        );
+        final XYPlot temperature_plot = temperature_chart.getXYPlot();
+        ValueAxis temperature_axis = temperature_plot.getDomainAxis();
+        temperature_axis.setAutoRange(true);
+        //temperature_axis.setFixedAutoRange(60000.0);
+        
+		// Gyro X
+        TimeSeriesCollection gyro_x_dataset = new TimeSeriesCollection(gyro_x_ts);
+        JFreeChart gyro_x_chart = ChartFactory.createTimeSeriesChart(
+            "X Gyro",
+            "Time",
+            "Value",
+            gyro_x_dataset,
+            true,
+            true,
+            false
+        );
+        final XYPlot gyro_x_plot = gyro_x_chart.getXYPlot();
+        ValueAxis gyro_x_axis = gyro_x_plot.getDomainAxis();
+        gyro_x_axis.setAutoRange(true);
+        //gyro_x_axis.setFixedAutoRange(60000.0); 
+		
+        // Gyro Y
+        TimeSeriesCollection gyro_y_dataset = new TimeSeriesCollection(gyro_y_ts);
+        JFreeChart gyro_y_chart = ChartFactory.createTimeSeriesChart(
+            "Y Gyro",
+            "Time",
+            "Value",
+            gyro_y_dataset,
+            true,
+            true,
+            false
+        );
+        final XYPlot gyro_y_plot = gyro_y_chart.getXYPlot();
+        ValueAxis gyro_y_axis = gyro_y_plot.getDomainAxis();
+        gyro_y_axis.setAutoRange(true);
+        //gyro_y_axis.setFixedAutoRange(60000.0);       
+
+        // Gyro Z
+        TimeSeriesCollection gyro_z_dataset = new TimeSeriesCollection(gyro_z_ts);
+        JFreeChart gyro_z_chart = ChartFactory.createTimeSeriesChart(
+            "Z Gyro",
+            "Time",
+            "Value",
+            gyro_z_dataset,
+            true,
+            true,
+            false
+        );
+        final XYPlot gyro_z_plot = gyro_z_chart.getXYPlot();
+        ValueAxis gyro_z_axis = gyro_z_plot.getDomainAxis();
+        gyro_z_axis.setAutoRange(true);
+        //gyro_z_axis.setFixedAutoRange(60000.0);
        
        
-       
-       
-       JFrame frame = new JFrame("Sensor Plots"); // frame is the window that holds the panels (these panels contain real time plots)
-       frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+       JFrame accel_frame = new JFrame("Acceleration Plots"); // frame is the window that holds the panels (these panels contain real time plots)
+       accel_frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
       
+       JFrame temperature_frame = new JFrame("Temperature_frame Plots"); // frame is the window that holds the panels (these panels contain real time plots)
+       temperature_frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
        
+       JFrame gyro_frame = new JFrame("Gyro Plots"); // frame is the window that holds the panels (these panels contain real time plots)
+       gyro_frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
        
        // Acceleration X
        ChartPanel accel_x_label = new ChartPanel(accel_x_chart);
-       frame.getContentPane().add(accel_x_label, BorderLayout.WEST);
+       accel_frame.getContentPane().add(accel_x_label, BorderLayout.WEST);
        
        // Acceleration Y
        ChartPanel accel_y_label = new ChartPanel(accel_y_chart);
-       frame.getContentPane().add(accel_y_label, BorderLayout.CENTER);
+       accel_frame.getContentPane().add(accel_y_label, BorderLayout.SOUTH);
        
        // Acceleration Z
        ChartPanel accel_z_label = new ChartPanel(accel_z_chart);
-       frame.getContentPane().add(accel_z_label, BorderLayout.EAST);
-
+       accel_frame.getContentPane().add(accel_z_label, BorderLayout.EAST);
+       
+       accel_frame.pack();
+       accel_frame.setVisible(true); 
+       
+       // Temperature
+       ChartPanel temperature_label = new ChartPanel(temperature_chart);
+       temperature_frame.getContentPane().add(temperature_label, BorderLayout.CENTER);
+       
+       temperature_frame.pack();
+       temperature_frame.setVisible(true); 
+       
+       // Gyro X
+       ChartPanel gyro_x_label = new ChartPanel(gyro_x_chart);
+       gyro_frame.getContentPane().add(gyro_x_label, BorderLayout.WEST);
+       
+       // Gyro Y
+       ChartPanel gyro_y_label = new ChartPanel(gyro_y_chart);
+       gyro_frame.getContentPane().add(gyro_y_label, BorderLayout.SOUTH);
+       
+       // Gyro Z
+       ChartPanel gyro_z_label = new ChartPanel(gyro_z_chart);
+       gyro_frame.getContentPane().add(gyro_z_label, BorderLayout.EAST);
         
-       frame.pack();
-       frame.setVisible(true);          		
+       gyro_frame.pack();
+       gyro_frame.setVisible(true);          		
 	}
 }
