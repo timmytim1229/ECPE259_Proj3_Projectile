@@ -1,10 +1,13 @@
 import java.awt.BorderLayout;
+import java.io.ByteArrayInputStream;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.Enumeration;
 import java.util.Vector;
+
+import java.lang.*;
 
 // Import for pause
 import java.util.concurrent.TimeUnit;
@@ -50,6 +53,7 @@ public class SerialTest implements SerialPortEventListener {
 	* making the displayed results codepage independent
 	*/
 	private BufferedReader input;
+	private ByteArrayInputStream byte_input;
 	private OutputStream output;
 	private static final int TIME_OUT = 5000;		// Milliseconds to block while waiting for port open
 	private static final int DATA_RATE = 9600;		// Default bits per second for serial port
@@ -59,6 +63,10 @@ public class SerialTest implements SerialPortEventListener {
     static String fileName = "demosat_data_.txt";
     
     private BufferedReader input_chars;
+    byte[] byte_buf = new byte[10];   
+    byte[] buff;   
+	//InputStream is = new ByteArrayInputStream(buff);
+
     
         
     // Sensor identifier constants
@@ -140,12 +148,16 @@ public class SerialTest implements SerialPortEventListener {
 
 			// open the streams
 			input = new BufferedReader(new InputStreamReader(serialPort.getInputStream()));
-			input_chars = new BufferedReader(new InputStreamReader(serialPort.getInputStream()));
+			input_chars = new BufferedReader(new InputStreamReader(serialPort.getInputStream(), "UTF-8"));
+			byte_input = new ByteArrayInputStream(byte_buf);
+			InputStream in = serialPort.getInputStream();
+			 		
 			output = serialPort.getOutputStream();
 
 			// add event listeners
 			serialPort.addEventListener(this);
 			serialPort.notifyOnDataAvailable(true);
+						
 		} catch (Exception e) {
 			System.err.println(e.toString());
 		}
@@ -164,6 +176,27 @@ public class SerialTest implements SerialPortEventListener {
 		}
 	}
 	
+	public static class UnicodeFormatter  {
+		 
+		   static public String byteToHex(byte b) {
+		      // Returns hex String representation of byte b
+		      char hexDigit[] = {
+		         '0', '1', '2', '3', '4', '5', '6', '7',
+		         '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
+		      };
+		      char[] array = { hexDigit[(b >> 4) & 0x0f], hexDigit[b & 0x0f] };
+		      return new String(array);
+		   }
+		 
+		   public static String charToHex(char c) {
+		      // Returns hex String representation of char c
+		      byte hi = (byte) (c >>> 8);
+		      byte lo = (byte) (c & 0xff);
+		      return byteToHex(hi) + byteToHex(lo);
+		   }
+		 
+		}
+	
 	/**
 	 * Handle an event on the serial port. Read the data, fix to valid JSON, parse each JSON line,
 	 * save each value and unit in a dynamic vector, save each full JSON line with date
@@ -178,22 +211,56 @@ public class SerialTest implements SerialPortEventListener {
 				
 				int value, value_msb, value_lsb;	
 				int counter = 0;
-				char check_char;
+				char check_char = 'g';
 				double p_value; 					// precise value
-				//String stuff;
+				int bytes;
+				Byte b = 4;
+				String stuff;
 				//Text j;
+		        InputStream inp = null;
 
+				
 				/*
 				 * Packet parsing with sensor receive verification
 				 */
 				// Check first byte in buffer
-				check_char = (char)input_chars.read();				
+//				check_char = (char)input_chars.read();				
 				//System.out.println("1st Input Char = " + check_char);
 				
 				// Wait for an 'S' to start reading packet
-				while(check_char != START_ID) {
-					check_char = (char)input_chars.read();				
-					System.out.println("IN WHILE = " + check_char);
+				//while(check_char != START_ID) {
+				while(counter < 5) {
+//					bytes = byte_input.read();
+//					System.out.println("Input byte " + bytes);
+//					check_char = (char)input_chars.read();				
+//					System.out.println("Bytes to input_char= " + check_char);
+					
+					//b = (byte) is.read();   
+					
+					value = input_chars.read();
+//					System.out.println("value = " + value);					
+//					check_char = (char)value;				
+//					System.out.println("Value to input_char= " + check_char);
+					bytes = (byte)value;
+					bytes = bytes & 0xFF;
+					System.out.println("Value to bytes= " + bytes);
+					
+//					char ch = (char)input_chars.read();
+//					String hex = String.format("%02x", (int)ch);
+//					System.out.println("value = " + hex);
+
+					//b = (byte)value;
+					//System.out.println("b = " + b.intValue());
+
+					//check_char = (char) (value & 0xFF);
+					//check_char = (char)input_chars.read();				   
+				    
+					//stuff = UnicodeFormatter.charToHex(check_char);
+					//System.out.println("Input_char = " + stuff);
+					
+					//b = (byte)inp.read();
+//					b = (byte)input_chars.read();				
+//					System.out.println("Input_char to byte = " + b);
 				}
 				
 				// Start packet read, use this 'if' as a secondary check of start of packet
