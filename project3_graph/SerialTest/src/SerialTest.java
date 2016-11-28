@@ -1,5 +1,6 @@
 import java.awt.BorderLayout;
 import java.io.ByteArrayInputStream;
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -46,14 +47,14 @@ public class SerialTest implements SerialPortEventListener {
 	private static final String PORT_NAMES[] = { 
 			"/dev/tty.usbserial-DA017QQD", 
 			"/dev/tty.usbmodem0E2147C1", 
-			"COM1", "COM2", "COM3", "COM4"};
+			"COM1", "COM2", "COM3", "COM4", "COM15"};
 	/**
 	* A BufferedReader which will be fed by a InputStreamReader 
 	* converting the bytes into characters 
 	* making the displayed results codepage independent
 	*/
 	private BufferedReader input;
-	private ByteArrayInputStream byte_input;
+	private BufferedInputStream byte_input;
 	private OutputStream output;
 	private static final int TIME_OUT = 5000;		// Milliseconds to block while waiting for port open
 	private static final int DATA_RATE = 9600;		// Default bits per second for serial port
@@ -62,7 +63,7 @@ public class SerialTest implements SerialPortEventListener {
 	// The name of the file to open.
     static String fileName = "demosat_data_.txt";
     
-    private BufferedReader input_chars;
+    private InputStream input_chars;
     byte[] byte_buf = new byte[10];   
     byte[] buff;   
 	//InputStream is = new ByteArrayInputStream(buff);
@@ -147,10 +148,12 @@ public class SerialTest implements SerialPortEventListener {
 					SerialPort.PARITY_NONE);
 
 			// open the streams
-			input = new BufferedReader(new InputStreamReader(serialPort.getInputStream()));
-			input_chars = new BufferedReader(new InputStreamReader(serialPort.getInputStream(), "UTF-8"));
-			byte_input = new ByteArrayInputStream(byte_buf);
-			InputStream in = serialPort.getInputStream();
+			//input = new BufferedReader(new InputStreamReader(serialPort.getInputStream()));
+			//input_chars = new BufferedReader(new BufferedInputStream(serialPort.getInputStream()));
+			input_chars = serialPort.getInputStream();
+			
+			//byte_input = new ByteArrayInputStream(byte_buf);
+			//InputStream in = serialPort.getInputStream();
 			 		
 			output = serialPort.getOutputStream();
 
@@ -241,8 +244,7 @@ public class SerialTest implements SerialPortEventListener {
 //					System.out.println("value = " + value);					
 //					check_char = (char)value;				
 //					System.out.println("Value to input_char= " + check_char);
-					bytes = (byte)value;
-					bytes = bytes & 0xFF;
+					bytes = (int) value & 0xFF;
 					System.out.println("Value to bytes= " + bytes);
 					
 //					char ch = (char)input_chars.read();
