@@ -114,10 +114,6 @@ public class SerialTest implements SerialPortEventListener {
      * opens the input and output streams for the port, and adds port listeners.
      */
 	public void initialize() {
-		//System.out.println("Initalize");
-        	// the next line is for Raspberry Pi and 
-            // gets us into the while loop and was suggested here was suggested http://www.raspberrypi.org/phpBB3/viewtopic.php?f=81&t=32186
-            //System.setProperty("gnu.io.rxtx.SerialPorts", "/dev/ttyACM0");
 
 		CommPortIdentifier portId = null;
 		Enumeration portEnum = CommPortIdentifier.getPortIdentifiers();
@@ -148,13 +144,7 @@ public class SerialTest implements SerialPortEventListener {
 					SerialPort.PARITY_NONE);
 
 			// open the streams
-			//input = new BufferedReader(new InputStreamReader(serialPort.getInputStream()));
-			//input_chars = new BufferedReader(new BufferedInputStream(serialPort.getInputStream()));
-			input_chars = serialPort.getInputStream();
-			
-			//byte_input = new ByteArrayInputStream(byte_buf);
-			//InputStream in = serialPort.getInputStream();
-			 		
+			input_chars = serialPort.getInputStream();	 		
 			output = serialPort.getOutputStream();
 
 			// add event listeners
@@ -210,335 +200,88 @@ public class SerialTest implements SerialPortEventListener {
 			try {				
 				//String input_Line = "";
 				//char [] input_array = new char[20]; // TODO: needs length of packet
+				char check_char;
 				//int len = 0;
-				
-				int value, value_msb, value_lsb;	
-				int counter = 0;
-				char check_char = 'g';
+				int value, value_msb, value_lsb;
 				double p_value; 					// precise value
-				int bytes;
-				Byte b = 4;
-				String stuff;
-				//Text j;
-		        InputStream inp = null;
 
-				
-				/*
-				 * Packet parsing with sensor receive verification
-				 */
-				// Check first byte in buffer
-//				check_char = (char)input_chars.read();				
-				//System.out.println("1st Input Char = " + check_char);
-				
-				// Wait for an 'S' to start reading packet
-				//while(check_char != START_ID) {
-				while(counter < 5) {
-//					bytes = byte_input.read();
-//					System.out.println("Input byte " + bytes);
-//					check_char = (char)input_chars.read();				
-//					System.out.println("Bytes to input_char= " + check_char);
-					
-					//b = (byte) is.read();   
-					
-					value = input_chars.read();
-//					System.out.println("value = " + value);					
-//					check_char = (char)value;				
-//					System.out.println("Value to input_char= " + check_char);
-					bytes = (int) value & 0xFF;
-					System.out.println("Value to bytes= " + bytes);
-					
-//					char ch = (char)input_chars.read();
-//					String hex = String.format("%02x", (int)ch);
-//					System.out.println("value = " + hex);
-
-					//b = (byte)value;
-					//System.out.println("b = " + b.intValue());
-
-					//check_char = (char) (value & 0xFF);
-					//check_char = (char)input_chars.read();				   
-				    
-					//stuff = UnicodeFormatter.charToHex(check_char);
-					//System.out.println("Input_char = " + stuff);
-					
-					//b = (byte)inp.read();
-//					b = (byte)input_chars.read();				
-//					System.out.println("Input_char to byte = " + b);
+				check_char = (char)input_chars.read();				
+				System.out.println("1st Input Char = " + check_char);
+				while(check_char != 'S')
+				{
+					//wait for S
+					check_char = (char)input_chars.read();
 				}
 				
-				// Start packet read, use this 'if' as a secondary check of start of packet
-				if(check_char == START_ID) {
-					//System.out.println("START VALUE = " + check_char);
-					
-					/*
-					 *  Packet validation technique 1
-					 */
-//					while(check_char != NEWLINE) {
-//						// check the char
-//						check_char = (char)input_chars.read();
-//
-//						if (check_char == ACCEL_ID) {
-//							System.out.println("IN ACCELERATION");
-//
-//							for (counter = 0; counter < 3; counter++) {
-//								// Get MSB byte
-//								value_msb = input_chars.read();
-//								System.out.println("msb = " + value_msb);
-//								
-//								// Convert the byte to a char to compare to TEMPERATURE_ID
-//								//check_char = (char)value_msb;
-//								//System.out.println("check_char = " + check_char);
-//								
-//								value_lsb = input_chars.read();
-//								System.out.println("lsb = " + value_lsb);
-//
-//								// Contrsruct value from 2 bytes
-//								value = value_msb << 8 | value_lsb;	
-//								System.out.println("ACCELERATION Value = " + value);
-//
-//								p_value = (double)value / 8192.0;
-//							}
-//						}
-//						else if (check_char == TEMPERATURE_ID) {
-//							System.out.println("IN TEMPERATURE");
-//
-//							value_msb = input_chars.read();
-//							System.out.println("msb = " + value_msb);
-//
-//							value_lsb = input_chars.read();
-//							System.out.println("lsb = " + value_lsb);
-//							
-//							// Contrsruct value from 2 bytes
-//							value = value_msb << 8 | value_lsb;	
-//							System.out.println("Temperature Value = " + value);
-//
-//							p_value = (double)value / 340.0 + 36.53;							
-//						}
-//						else if (check_char == GYRO_ID) {
-//							System.out.println("IN GYRO");
-//
-//							for (counter = 0; counter < 3; counter++) {
-//								value_msb = input_chars.read();
-//								System.out.println("msb = " + value_msb);
-//								
-//								value_lsb = input_chars.read();
-//								System.out.println("lsb = " + value_lsb);
-//								
-//								// Contstruct value from 2 bytes
-//								value = value_msb << 8 | value_lsb;
-//								System.out.println("GYRO Value = " + value);
-//
-//								p_value = (double)value / 939.650784;
-//							}
-//						}
-//
-//					}
-//					System.out.println("END OF PACKET");
-
-						
-						
-					/*
-					 * Packet validation technique 2	
-					 */
+				// start packet read
+				if(check_char == 'S') {		
 					
 					// See what the next char is
 					check_char = (char)input_chars.read();
-					//System.out.println("AFTER START = " + check_char);
-					
-					if(check_char == ACCEL_ID) {
-						//System.out.println("ACCEL ID = " + check_char);
-
-						// Reset counter
-						counter = 0;
-						//System.out.println("Counter = " + counter);
-
-						while(check_char != TEMPERATURE_ID) {
-							//System.out.println("in while Counter = " + counter);							
-
-							// Get MSB byte
+					do{	
+						
+						// read acceleration data
+						for(int i = 0; i < 3; i++) {
+							//construct value from 2 chars
 							value_msb = input_chars.read();
-							//System.out.println("msb = " + value_msb);
-							
-							// Convert the byte to a char to compare to TEMPERATURE_ID
-							check_char = (char)value_msb;
-							//System.out.println("check_char = " + check_char);
-							
-							if (check_char == TEMPERATURE_ID) {
-								break;
-							}
-							
 							value_lsb = input_chars.read();
-							//System.out.println("lsb = " + value_lsb);
-
-							// Construct value from 2 bytes
-							value = value_msb << 8 | value_lsb;	
-							
-							System.out.println("Accel val = " + value);
-
+							value = value_msb << 8 | value_lsb;					
 							p_value = (double)value / 8192.0;
-							//System.out.println("ACCEL VALUE = " + p_value);
 							
-							if(counter == 0) {
+							if(i == 0) {
 								System.out.println("Accel Value_x = " + p_value);
 								accel_x_vector.addElement(new Double(p_value));		// Save to vector
 								accel_x_ts.addOrUpdate(new Millisecond(), value);	// Save to time	series	
-							} else if(counter == 1) {
+							} else if(i == 1) {
 								System.out.println("Accel Value_y = " + p_value);
 								accel_y_vector.addElement(new Double(p_value));		// Save to vector
 								accel_y_ts.addOrUpdate(new Millisecond(), p_value);	// Save to time	series
-							} else if (counter == 2) {
+							} else {
 								System.out.println("Accel Value_z = " + p_value);
 								accel_z_vector.addElement(new Double(p_value));		// Save to vector
 								accel_z_ts.addOrUpdate(new Millisecond(), p_value);	// Save to time	series
 							}
-							counter++;
 						}
-					}
-					
-					if(check_char == TEMPERATURE_ID) {
 						
-						// Reset counter
-						counter = 0;
+						// See what the next char is
+						check_char = (char)input_chars.read();
+						System.out.println(check_char);
 						
-						while(check_char != GYRO_ID) {
+						// read temperature data
+						value_msb = input_chars.read();
+						value_lsb = input_chars.read();
+						value = value_msb << 8 | value_lsb;		
+						p_value = (double)value / 340.0 + 36.53;
+						
+						System.out.println("Temperature Value = " + value);
+						temperature_vector.addElement(new Double(value));			// Save to vector
+						temperature_ts.addOrUpdate(new Millisecond(), value);		// Save to time	series
+						
+						// See what the next char is
+						check_char = (char)input_chars.read();
+						System.out.println(check_char);
+						
+						for(int i = 0; i < 3; i++) {
+							//construct value from 2 chars
 							value_msb = input_chars.read();
-							check_char = (char)value_msb;
-							
-							if (check_char == GYRO_ID) {
-								break;
-							}
-							
 							value_lsb = input_chars.read();
-							
-							// Construct value from 2 bytes
-							value = value_msb << 8 | value_lsb;					
-							p_value = (double)value / 340.0 + 36.53;
-							
-							System.out.println("Temperature val = " + value);
-							System.out.println("Temperature Value = " + p_value);
-
-							temperature_vector.addElement(new Double(value));			// Save to vector
-							temperature_ts.addOrUpdate(new Millisecond(), value);		// Save to time	series
-							
-							counter++;
-						}
-					}
-					
-					if(check_char == GYRO_ID) {
-						
-						// Reset counter
-						counter = 0;
-						
-						while(check_char != NEWLINE) {
-							value_msb = input_chars.read();
-							check_char = (char)value_msb;
-							
-							if (check_char == NEWLINE) {
-								break;
-							}
-							
-							value_lsb = input_chars.read();
-							
-							// Construct value from 2 bytes
 							value = value_msb << 8 | value_lsb;					
 							p_value = (double)value / 939.650784;
 							
-							if(counter == 0) {
+							if(i == 0) {
 								System.out.println("Gyro Value_x = " + value);
-								System.out.println("Gyro Value_x = " + p_value);
-
 								gyro_x_vector.addElement(new Double(value));		// Save to vector
 								gyro_x_ts.addOrUpdate(new Millisecond(), value);	// Save to time	series
-							} else if(counter == 1) {
+							} else if(i == 1) {
 								System.out.println("Gyro Value_y = " + value);
-								System.out.println("Gyro Value_y = " + p_value);
-
 								gyro_y_vector.addElement(new Double(value));		// Save to vector
 								gyro_y_ts.addOrUpdate(new Millisecond(), value);	// Save to time	series
-							} else if (counter == 2) {
+							} else {
 								System.out.println("Gyro Value_z = " + value);
-								System.out.println("Gyro Value_z = " + p_value);
-
 								gyro_z_vector.addElement(new Double(value));		// Save to vector
 								gyro_z_ts.addOrUpdate(new Millisecond(), value);	// Save to time	series
-							}							
-							counter++;
+							}
 						}
-						System.out.println("END OF PACKET");
-
-					}				
-					
-					/*
-					 * Add MAGNOMETER section here once functional
-					 */
-					
-					
-					/*
-					 * Packet parsing without sensor receive verification
-					 */
-//					do{	
-//		
-//						// Read acceleration data
-//						for(int i = 0; i < 3; i++) {
-//							//construct value from 2 chars
-//							value_msb = input_chars.read();
-//							value_lsb = input_chars.read();
-//							value = value_msb << 8 | value_lsb;					
-//							p_value = (double)value / 8192.0;
-//							
-//							if(i == 0) {
-//								System.out.println("Accel Value_x = " + p_value);
-//								accel_x_vector.addElement(new Double(p_value));		// Save to vector
-//								accel_x_ts.addOrUpdate(new Millisecond(), value);	// Save to time	series	
-//							} else if(i == 1) {
-//								System.out.println("Accel Value_y = " + p_value);
-//								accel_y_vector.addElement(new Double(p_value));		// Save to vector
-//								accel_y_ts.addOrUpdate(new Millisecond(), p_value);	// Save to time	series
-//							} else {
-//								System.out.println("Accel Value_z = " + p_value);
-//								accel_z_vector.addElement(new Double(p_value));		// Save to vector
-//								accel_z_ts.addOrUpdate(new Millisecond(), p_value);	// Save to time	series
-//							}
-//						}
-//						
-//						// See what the next char is
-//						check_char = (char)input_chars.read();
-//						System.out.println(check_char);
-//						
-//						// read temperature data
-//						value_msb = input_chars.read();
-//						value_lsb = input_chars.read();
-//						value = value_msb << 8 | value_lsb;		
-//						p_value = (double)value / 340.0 + 36.53;
-//						
-//						System.out.println("Temperature Value = " + value);
-//						temperature_vector.addElement(new Double(value));			// Save to vector
-//						temperature_ts.addOrUpdate(new Millisecond(), value);		// Save to time	series
-//						
-//						// See what the next char is
-//						check_char = (char)input_chars.read();
-//						System.out.println(check_char);
-//						
-//						for(int i = 0; i < 3; i++) {
-//							//construct value from 2 chars
-//							value_msb = input_chars.read();
-//							value_lsb = input_chars.read();
-//							value = value_msb << 8 | value_lsb;					
-//							p_value = (double)value / 939.650784;
-//							
-//							if(i == 0) {
-//								System.out.println("Gyro Value_x = " + value);
-//								gyro_x_vector.addElement(new Double(value));		// Save to vector
-//								gyro_x_ts.addOrUpdate(new Millisecond(), value);	// Save to time	series
-//							} else if(i == 1) {
-//								System.out.println("Gyro Value_y = " + value);
-//								gyro_y_vector.addElement(new Double(value));		// Save to vector
-//								gyro_y_ts.addOrUpdate(new Millisecond(), value);	// Save to time	series
-//							} else {
-//								System.out.println("Gyro Value_z = " + value);
-//								gyro_z_vector.addElement(new Double(value));		// Save to vector
-//								gyro_z_ts.addOrUpdate(new Millisecond(), value);	// Save to time	series
-//							}
-//						}
 							
 //						else if (check_char == MAGNETOMETER_ID)
 //						{
@@ -557,11 +300,11 @@ public class SerialTest implements SerialPortEventListener {
 //							mag_z_vector.addElement(new Double(value));			// Save to vector
 //							mag_z_ts.addOrUpdate(new Millisecond(), value);		// Save to time	series			
 //						}
-//						
-//						check_char = (char)input_chars.read();
-//						if(check_char != '\n')
-//							System.out.println("ERROR, LAST CHARACTER IS NOT \n!");
-//					} while(check_char != '\n');	
+						
+						check_char = (char)input_chars.read();
+						if(check_char != '\n')
+							System.out.println("ERROR, LAST CHARACTER IS NOT \n!");
+					} while(check_char != '\n');	
 				}
 				
 				
