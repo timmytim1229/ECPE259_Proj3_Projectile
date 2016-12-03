@@ -30,16 +30,16 @@ void readMPU6050(uint32_t uart_base, uint32_t i2c_base, uint8_t mpu6050_address)
 	int i = 0;
 
 	// obtain data from MPU650 (20 bytes, register 0x3B)
-  // bytes 0-5 = accel data
-  // bytes 6-7 = temperature data
-  // bytes 8-13 = gyro data
-  // bytes 14-19 = magno data
-  I2CReadValue(i2c_base, 20, mpu6050_address, 0x3B, rx_buffer);
+	// bytes 0-5 = accel data
+	// bytes 6-7 = temperature data
+	// bytes 8-13 = gyro data
+	// bytes 14-19 = magno data
+	I2CReadValue(i2c_base, 20, mpu6050_address, 0x3B, rx_buffer);
 
-  // send label to start data packet
-  UARTCharPut(uart_base, 'S');
-  UARTCharPut(uart_base, 'A');
-  for(i = 0; i <= 13; i++){
+	// send label to start data packet
+	UARTCharPut(uart_base, 'S');
+	UARTCharPut(uart_base, 'A');
+	for(i = 0; i <= 13; i++){
     UARTCharPut(uart_base, rx_buffer[i]);
 
     //after every two bytes, send a delimiter
@@ -59,6 +59,8 @@ void readMPU6050(uint32_t uart_base, uint32_t i2c_base, uint8_t mpu6050_address)
       //UARTCharPut(uart_base, '\n');
     }
   }
+//  UARTCharPut(uart_base, 'D');
+//  UARTCharPut(uart_base, 'D');
   UARTCharPut(uart_base, '\n');
 }
 
@@ -67,7 +69,9 @@ void readMS5611(uint32_t uart_base, uint32_t i2c_base, uint8_t ms5611_address)
 	uint8_t rx_buffer[3];
 	int i = 0;
 
+	// write
 	// read MPU6050
+
 	I2CReadValue(i2c_base, 3, ms5611_address, 0x00, rx_buffer);
 
 	for(i = 0; i < 3; i++)

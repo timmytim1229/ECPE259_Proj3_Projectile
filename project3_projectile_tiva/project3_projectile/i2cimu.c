@@ -42,16 +42,16 @@ void I2CReadValue(uint32_t i2c_base, uint8_t byte_count, uint8_t slave_addr, uin
 	int bcm1;
 	uint32_t temp_val = 0;
 
-	I2CMasterSlaveAddrSet(i2c_base, slave_addr, false);						//write to slave_addr
-	I2CMasterDataPut(i2c_base, reg_start);									//specify what register to read from
-    I2CMasterControl(i2c_base, I2C_MASTER_CMD_SINGLE_SEND);					//send control byte and register address byte to slave device
-    while(I2CMasterBusy(i2c_base));											//wait for MCU to finish transaction
+	I2CMasterSlaveAddrSet(i2c_base, slave_addr, false);						// write to slave_addr
+	I2CMasterDataPut(i2c_base, reg_start);									// specify what register to read from
+    I2CMasterControl(i2c_base, I2C_MASTER_CMD_SINGLE_SEND);					// send control byte and register address byte to slave device
+    while(I2CMasterBusy(i2c_base));											// wait for MCU to finish transaction
 
     I2CMasterSlaveAddrSet(i2c_base, slave_addr, true);						// read from slave_addr
 
     if(byte_count > 1) {
 		I2CMasterControl(i2c_base, I2C_MASTER_CMD_BURST_RECEIVE_START);
-		while(I2CMasterBusy(i2c_base));										//wait for MCU to finish transaction
+		while(I2CMasterBusy(i2c_base));										// wait for MCU to finish transaction
 		temp_val = I2CMasterDataGet(i2c_base);
 		*buffer++ = (uint8_t)temp_val;
 
@@ -59,19 +59,19 @@ void I2CReadValue(uint32_t i2c_base, uint8_t byte_count, uint8_t slave_addr, uin
 
 		while(bcm1-- > 1){
 			I2CMasterControl(i2c_base, I2C_MASTER_CMD_BURST_RECEIVE_CONT);
-			while(I2CMasterBusy(i2c_base));									//wait for MCU to finish transaction
+			while(I2CMasterBusy(i2c_base));									// wait for MCU to finish transaction
 			temp_val = I2CMasterDataGet(i2c_base);
 			*buffer++ = (uint8_t)temp_val;
 		}
 
 		I2CMasterControl(i2c_base, I2C_MASTER_CMD_BURST_RECEIVE_FINISH);
-		while(I2CMasterBusy(i2c_base));										//wait for MCU to finish transaction
+		while(I2CMasterBusy(i2c_base));										// wait for MCU to finish transaction
 		temp_val = I2CMasterDataGet(i2c_base);
 		*buffer++ = (uint8_t)temp_val;
 
     } else { //byte_count == 1
     	I2CMasterControl(i2c_base, I2C_MASTER_CMD_SINGLE_RECEIVE);
-		while(I2CMasterBusy(i2c_base));										//wait for MCU to finish transaction
+		while(I2CMasterBusy(i2c_base));										// wait for MCU to finish transaction
 		temp_val = I2CMasterDataGet(i2c_base);
 		*buffer = (uint8_t)temp_val;
     }

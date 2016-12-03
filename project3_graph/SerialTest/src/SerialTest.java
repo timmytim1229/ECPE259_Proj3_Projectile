@@ -47,7 +47,7 @@ public class SerialTest implements SerialPortEventListener {
 	private static final String PORT_NAMES[] = { 
 			"/dev/tty.usbserial-DA017QQD", 
 			"/dev/tty.usbmodem0E2147C1", 
-			"COM1", "COM2", "COM3", "COM4", "COM15"};
+			"COM1", "COM2", "COM3", "COM4", "COM13", "COM15"};
 	/**
 	* A BufferedReader which will be fed by a InputStreamReader 
 	* converting the bytes into characters 
@@ -57,7 +57,7 @@ public class SerialTest implements SerialPortEventListener {
 	private BufferedInputStream byte_input;
 	private OutputStream output;
 	private static final int TIME_OUT = 5000;		// Milliseconds to block while waiting for port open
-	private static final int DATA_RATE = 9600;		// Default bits per second for serial port
+	private static final int DATA_RATE = 57600;		// Default bits per second for serial port
 
 	
 	// The name of the file to open.
@@ -200,24 +200,26 @@ public class SerialTest implements SerialPortEventListener {
 			try {				
 				//String input_Line = "";
 				//char [] input_array = new char[20]; // TODO: needs length of packet
-				char check_char;
+				char check_char, packetStartChar;
 				//int len = 0;
 				int value, value_msb, value_lsb;
 				double p_value; 					// precise value
 
-				check_char = (char)input_chars.read();				
-				System.out.println("1st Input Char = " + check_char);
-				while(check_char != 'S')
+				packetStartChar = (char)input_chars.read();				
+				System.out.println("1st Input Char = " + packetStartChar);
+				while(packetStartChar != 'S')
 				{
 					//wait for S
-					check_char = (char)input_chars.read();
+					packetStartChar = (char)input_chars.read();
+					System.out.println(packetStartChar);
 				}
 				
 				// start packet read
-				if(check_char == 'S') {		
+				if(packetStartChar == 'S') {		
 					
 					// See what the next char is
 					check_char = (char)input_chars.read();
+					System.out.println(check_char);
 					do{	
 						
 						// read acceleration data
@@ -231,7 +233,7 @@ public class SerialTest implements SerialPortEventListener {
 							if(i == 0) {
 								System.out.println("Accel Value_x = " + p_value);
 								accel_x_vector.addElement(new Double(p_value));		// Save to vector
-								accel_x_ts.addOrUpdate(new Millisecond(), value);	// Save to time	series	
+								accel_x_ts.addOrUpdate(new Millisecond(), p_value);	// Save to time	series	
 							} else if(i == 1) {
 								System.out.println("Accel Value_y = " + p_value);
 								accel_y_vector.addElement(new Double(p_value));		// Save to vector
@@ -251,11 +253,11 @@ public class SerialTest implements SerialPortEventListener {
 						value_msb = input_chars.read();
 						value_lsb = input_chars.read();
 						value = value_msb << 8 | value_lsb;		
-						p_value = (double)value / 340.0 + 36.53;
-						
-						System.out.println("Temperature Value = " + value);
-						temperature_vector.addElement(new Double(value));			// Save to vector
-						temperature_ts.addOrUpdate(new Millisecond(), value);		// Save to time	series
+						//p_value = (double)value / 340.0 + 36.53;
+						p_value = ((double)value + 12412.0) / 340.0;
+						System.out.println("Temperature Value = " + p_value);
+						temperature_vector.addElement(new Double(p_value));			// Save to vector
+						temperature_ts.addOrUpdate(new Millisecond(), p_value);		// Save to time	series
 						
 						// See what the next char is
 						check_char = (char)input_chars.read();
@@ -267,19 +269,20 @@ public class SerialTest implements SerialPortEventListener {
 							value_lsb = input_chars.read();
 							value = value_msb << 8 | value_lsb;					
 							p_value = (double)value / 939.650784;
+							//p_value = (double)value;
 							
 							if(i == 0) {
-								System.out.println("Gyro Value_x = " + value);
-								gyro_x_vector.addElement(new Double(value));		// Save to vector
-								gyro_x_ts.addOrUpdate(new Millisecond(), value);	// Save to time	series
+								System.out.println("Gyro Value_x = " + p_value);
+								gyro_x_vector.addElement(new Double(p_value));		// Save to vector
+								gyro_x_ts.addOrUpdate(new Millisecond(), p_value);	// Save to time	series
 							} else if(i == 1) {
-								System.out.println("Gyro Value_y = " + value);
-								gyro_y_vector.addElement(new Double(value));		// Save to vector
-								gyro_y_ts.addOrUpdate(new Millisecond(), value);	// Save to time	series
+								System.out.println("Gyro Value_y = " + p_value);
+								gyro_y_vector.addElement(new Double(p_value));		// Save to vector
+								gyro_y_ts.addOrUpdate(new Millisecond(), p_value);	// Save to time	series
 							} else {
-								System.out.println("Gyro Value_z = " + value);
-								gyro_z_vector.addElement(new Double(value));		// Save to vector
-								gyro_z_ts.addOrUpdate(new Millisecond(), value);	// Save to time	series
+								System.out.println("Gyro Value_z = " + p_value);
+								gyro_z_vector.addElement(new Double(p_value));		// Save to vector
+								gyro_z_ts.addOrUpdate(new Millisecond(), p_value);	// Save to time	series
 							}
 						}
 							
@@ -302,8 +305,27 @@ public class SerialTest implements SerialPortEventListener {
 //						}
 						
 						check_char = (char)input_chars.read();
-						if(check_char != '\n')
+						if(check_char != '\n') {
 							System.out.println("ERROR, LAST CHARACTER IS NOT \n!");
+							//remove elements that were placed in vectors
+							accel_x_vector.remove(accel_x_vector.size()-1);
+							accel_x_ts.delete(accel_x_ts.getItemCount()-1, accel_x_ts.getItemCount()-1);
+							accel_y_vector.remove(accel_y_vector.size()-1);
+							accel_y_ts.delete(accel_y_ts.getItemCount()-1, accel_y_ts.getItemCount()-1);
+							accel_z_vector.remove(accel_z_vector.size()-1);
+							accel_z_ts.delete(accel_z_ts.getItemCount()-1, accel_z_ts.getItemCount()-1);
+							temperature_vector.remove(temperature_vector.size()-1);
+							temperature_ts.delete(temperature_ts.getItemCount()-1, temperature_ts.getItemCount()-1);
+							gyro_x_vector.remove(gyro_x_vector.size()-1);
+							gyro_x_ts.delete(gyro_x_ts.getItemCount()-1, gyro_x_ts.getItemCount()-1);
+							gyro_y_vector.remove(gyro_y_vector.size()-1);
+							gyro_y_ts.delete(gyro_y_ts.getItemCount()-1, gyro_y_ts.getItemCount()-1);
+							gyro_z_vector.remove(gyro_z_vector.size()-1);
+							gyro_z_ts.delete(gyro_z_ts.getItemCount()-1, gyro_z_ts.getItemCount()-1);
+							//Thread.sleep(2000);
+							check_char = '\n';
+							//break;
+						}
 					} while(check_char != '\n');	
 				}
 				

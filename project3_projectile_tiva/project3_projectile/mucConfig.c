@@ -72,6 +72,7 @@ void configureIMU(uint32_t i2c_base, uint8_t mpu6050_address, uint8_t hmc5883l_a
 	I2CSendValue(i2c_base, mpu6050_address,  0x6B, 0x00);                  		// exit sleep
 	I2CSendValue(i2c_base, mpu6050_address,  0x19, 109);                   		// sample rate = 8kHz / 110 = 72.7Hz
 	I2CSendValue(i2c_base, mpu6050_address,  0x1B, 0x18);                  		// gyro full scale = +/- 2000dps
+	//I2CSendValue(i2c_base, mpu6050_address,  0x1B, 0x10);                  		// gyro full scale +/- 1000dps
 	I2CSendValue(i2c_base, mpu6050_address,  0x1C, 0x08);                  		// accelerometer full scale = +/- 4g
 
 	// configure the MS5611 (barometer)
