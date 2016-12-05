@@ -37,6 +37,15 @@ void I2CSendValue(uint32_t i2c_base, uint8_t slave_addr, uint8_t reg, uint8_t va
 	while(I2CMasterBusy(i2c_base));										// while not busy
 }
 
+void I2CSendValueMS5611(uint32_t i2c_base, uint8_t slave_addr, uint8_t cmd)
+{
+	I2CMasterSlaveAddrSet(i2c_base, slave_addr, false);					// write to slave_addr
+
+	I2CMasterDataPut(i2c_base, cmd);									// write register address
+	I2CMasterControl(i2c_base, I2C_MASTER_CMD_SINGLE_SEND);
+	while(I2CMasterBusy(i2c_base));										// wait for MCU to finish transaction
+}
+
 void I2CReadValue(uint32_t i2c_base, uint8_t byte_count, uint8_t slave_addr, uint8_t reg_start, uint8_t *buffer)
 {
 	int bcm1;

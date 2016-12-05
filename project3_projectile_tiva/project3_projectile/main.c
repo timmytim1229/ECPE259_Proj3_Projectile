@@ -85,24 +85,29 @@ int main(void)
     configureIMU(I2C1_BASE, MPU6050_ADDRESS, HMC5883L_ADDRESS, MS5611_ADDRESS);
     UARTEnable(UART0_BASE);
     UARTEnable(UART1_BASE);
-    //UARTEnable(UART2_BASE);
+    UARTEnable(UART2_BASE);
 
-
+    // read GPS data from UART2 for initial distance
+    //readGPS(UART2_BASE);
 
     //while(UARTCharsAvail(UART1_BASE)){
-    while(1){
-    	// read GPS data from UART1
-     	//readGPS(UART1_BASE);
+    while(1){ //wait for signal from program to exit
+    	// toggle GPIO pin for frequency measurement
+    	//GPIOPinWrite(GPIO_PORTC_BASE, GPIO_PIN_4, GPIO_PIN_4);
+
     	//mpu6050test(UART0_BASE, I2C1_BASE, MPU6050_ADDRESS);
     	readMPU6050(UART1_BASE, I2C1_BASE, MPU6050_ADDRESS);
-    	//readMS5611(UART0_BASE, I2C1_BASE, MS5611_ADDRESS);
+    	//readMS5611(UART1_BASE, I2C1_BASE, MS5611_ADDRESS);
 
     	//uartTest();
     	// read whoami: 0x75, should get 68 from it
+    	//GPIOPinWrite(GPIO_PORTC_BASE, GPIO_PIN_4, ~GPIO_PIN_4);
 
+    	//
     }
-	// toggle GPIO pin for frequency measurement
-	//GPIOPinWrite(GPIO_PORTC_BASE, GPIO_PIN_4, GPIO_PIN_4);
-	//SysCtlDelay(5000); 	// Delay for 5000 clock cycles
-	//GPIOPinWrite(GPIO_PORTC_BASE, GPIO_PIN_4, ~GPIO_PIN_4);
+    // read GPS data from UART2 for final distance
+    //readGPS(UART2_BASE);
+
+
+
 }

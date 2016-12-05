@@ -73,11 +73,15 @@ void configureIMU(uint32_t i2c_base, uint8_t mpu6050_address, uint8_t hmc5883l_a
 	I2CSendValue(i2c_base, mpu6050_address,  0x19, 109);                   		// sample rate = 8kHz / 110 = 72.7Hz
 	I2CSendValue(i2c_base, mpu6050_address,  0x1B, 0x18);                  		// gyro full scale = +/- 2000dps
 	//I2CSendValue(i2c_base, mpu6050_address,  0x1B, 0x10);                  		// gyro full scale +/- 1000dps
-	I2CSendValue(i2c_base, mpu6050_address,  0x1C, 0x08);                  		// accelerometer full scale = +/- 4g
+	//I2CSendValue(i2c_base, mpu6050_address,  0x1C, 0x00);                  		// accelerometer full scale = +/- 2g
+	//I2CSendValue(i2c_base, mpu6050_address,  0x1C, 0x08);                  		// accelerometer full scale = +/- 4g
+	I2CSendValue(i2c_base, mpu6050_address,  0x1C, 0x10);                  		// accelerometer full scale = +/- 8g
+	//I2CSendValue(i2c_base, mpu6050_address,  0x1C, 0x18);                  		// accelerometer full scale = +/- 16g
 
 	// configure the MS5611 (barometer)
-	I2CSendValue(i2c_base, ms5611_address, 0x1E, 0x00);                    		// reset
-	I2CSendValue(i2c_base, ms5611_address, 0x48, 0x00);                    		// start conversion of the pressure sensor
+	I2CSendValueMS5611(i2c_base, ms5611_address, 0x1E);                    		// reset
+	I2CSendValueMS5611(i2c_base, ms5611_address, 0x58);                    		// start conversion of the temperature sensor D2 = 4096
+	I2CSendValueMS5611(i2c_base, ms5611_address, 0x48);                    		// start conversion of the pressure sensor D1 = 4096
 
 	// configure the magnetometer
 	I2CSendValue(i2c_base, mpu6050_address,  0x6A, 0x00);                    	// disable i2c master mode

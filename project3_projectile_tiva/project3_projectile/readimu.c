@@ -71,14 +71,13 @@ void readMS5611(uint32_t uart_base, uint32_t i2c_base, uint8_t ms5611_address)
 
 	// write
 	// read MPU6050
-
 	I2CReadValue(i2c_base, 3, ms5611_address, 0x00, rx_buffer);
 
 	for(i = 0; i < 3; i++)
 		UARTCharPut(uart_base, rx_buffer[i]);
 }
 
-void readGPS(uint32_t uart_base)
+void readGPS(uint32_t uart_get_base, uint32_t uart_put_base)
 {
     int num_gps_char = 0;
     int gps_return = 0;
@@ -87,9 +86,9 @@ void readGPS(uint32_t uart_base)
 
     while(gps_return == 0){
 
-		frame_char1 = UARTCharGet(uart_base);
-		frame_char2 = UARTCharGet(uart_base);
-		frame_char3 = UARTCharGet(uart_base);
+		frame_char1 = UARTCharGet(uart_get_base);
+		frame_char2 = UARTCharGet(uart_get_base);
+		frame_char3 = UARTCharGet(uart_get_base);
 
 		// Read lat/long from GPS
 		// Search for GPS start characters
@@ -99,28 +98,28 @@ void readGPS(uint32_t uart_base)
 			// Stuff the "GLL" through the UART
 			// G
 			gps_data[num_gps_char] = frame_char1;
-			UARTCharPut(uart_base, gps_data[num_gps_char]);
+			UARTCharPut(uart_put_base, gps_data[num_gps_char]);
 			//f_printf(&LogFile, "%c", gps_data[num_gps_char]);
 			num_gps_char++;
 			// L
 			gps_data[num_gps_char] = frame_char2;
-			UARTCharPut(uart_base, gps_data[num_gps_char]);
+			UARTCharPut(uart_put_base, gps_data[num_gps_char]);
 			//f_printf(&LogFile, "%c", gps_data[num_gps_char]);
 			num_gps_char++;
 			// L
 			gps_data[num_gps_char] = frame_char3;
-			UARTCharPut(uart_base, gps_data[num_gps_char]);
+			UARTCharPut(uart_put_base, gps_data[num_gps_char]);
 			//f_printf(&LogFile, "%c", gps_data[num_gps_char]);
 			num_gps_char++;
 
 			// read until end of the frame (terminated with an \n)
 			while(gps_data[num_gps_char] != '\n') {
-				gps_data[num_gps_char] = UARTCharGet(uart_base);
-				UARTCharPut(uart_base, gps_data[num_gps_char]);
+				gps_data[num_gps_char] = UARTCharGet(uart_get_base);
+				UARTCharPut(uart_put_base, gps_data[num_gps_char]);
 				//f_printf(&LogFile, "%c", gps_data[num_gps_char]);
 				num_gps_char++;
 			}
-			UARTCharPut(uart_base,'\n');
+			UARTCharPut(uart_put_base,'\n');
 			//f_printf(&LogFile, "%c", '\n');
 			//UARTCharPut(uart_base,'\n'); // send null character
 			gps_data[num_gps_char] = '\0';
