@@ -38,6 +38,7 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.time.Millisecond;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
+import org.jfree.chart.axis.NumberAxis;
 
 import gnu.io.CommPortIdentifier;
 import gnu.io.SerialPort;
@@ -53,19 +54,19 @@ import gnu.io.SerialPortEventListener;
 //TODO: Save data to object to analyze later? Or is text file good enough?
 
 // pulled from https://www.tutorialspoint.com/javaexamples/thread_stop.htm
-// class serialThread implements Runnable {
-//	   private volatile boolean stop = false;
-//	   public void run() {
-//	      while (!stop) {
-//	         System.out.println("running");
-//	      }
-//	      if (stop)
-//	      System.out.println("Detected stop"); 
-//	   }
-//	   public void stop() {
-//	      stop = true;
-//	   }
-//	}
+ class serialThread implements Runnable {
+	   private volatile boolean stop = false;
+	   public void run() {
+	      while (!stop) {
+	         //System.out.println("running");
+	      }
+	      if (stop)
+	      System.out.println("Detected stop"); 
+	   }
+	   public void stop() {
+	      stop = true;
+	   }
+	}
 
 
 public class SerialTest implements SerialPortEventListener {
@@ -88,7 +89,7 @@ public class SerialTest implements SerialPortEventListener {
 	private static final int DATA_RATE = 57600;		// Default bits per second for serial port
 
 	// for stopping threads
-	private volatile boolean stop = false;
+	// private volatile static boolean exit = false;
 	
 	// The name of the file to open.
     static String FILENAME = "sensor_data.txt";
@@ -234,6 +235,7 @@ public class SerialTest implements SerialPortEventListener {
 				char check_char, packetStartChar, validateEndChar;
 				//int len = 0;
 				int value_msb, value_lsb;
+				short combine_value;
 				double value;
 				double p_value; 					// precise value
 
@@ -260,23 +262,39 @@ public class SerialTest implements SerialPortEventListener {
 							//construct value from 2 chars
 							value_msb = input_chars.read();
 							value_lsb = input_chars.read();
-							value = (short)((value_msb) << 8) | (value_lsb & 0xff);					
-							//value = ((double)value) / 2048.0;
+							value = ((short)((value_msb) << 8) | (value_lsb & 0xff)) / 4096.0;					
+							//value = (value) / 8192.0;
 							//p_value = value;
-							
-							if(i == 0) {
-								System.out.println("Accel Value_x = " + value);
-								accel_x_vector.addElement(new Double(value));		// Save to vector
-								accel_x_ts.addOrUpdate(new Millisecond(), value);	// Save to time	series	
-							} 
-							else if(i == 1) {
-								System.out.println("Accel Value_y = " + value);
-								accel_y_vector.addElement(new Double(value));		// Save to vector
-								accel_y_ts.addOrUpdate(new Millisecond(), value);	// Save to time	series
-							} else {
-								System.out.println("Accel Value_z = " + value);
-								accel_z_vector.addElement(new Double(value));		// Save to vector
-								accel_z_ts.addOrUpdate(new Millisecond(), value);	// Save to time	series
+							if (value > -4.0 && value < 4.0){
+								if(i == 0) {
+									System.out.println("Accel Value_x = " + value);
+									accel_x_vector.addElement(new Double(value));		// Save to vector
+									accel_x_ts.addOrUpdate(new Millisecond(), value);	// Save to time	series	
+								} 
+								else if(i == 1) {
+									System.out.println("Accel Value_y = " + value);
+									accel_y_vector.addElement(new Double(value));		// Save to vector
+									accel_y_ts.addOrUpdate(new Millisecond(), value);	// Save to time	series
+								} else {
+									System.out.println("Accel Value_z = " + value);
+									accel_z_vector.addElement(new Double(value));		// Save to vector
+									accel_z_ts.addOrUpdate(new Millisecond(), value);	// Save to time	series
+								}
+							} else { // if value is invalid (larger/smaller than max/min acc), write dummy value to delete later
+								if(i == 0) {
+									System.out.println("Accel Value_x = " + 0);
+									accel_x_vector.addElement(new Double(0));		// Save to vector
+									accel_x_ts.addOrUpdate(new Millisecond(), 0);	// Save to time	series	
+								} 
+								else if(i == 1) {
+									System.out.println("Accel Value_y = " + 0);
+									accel_y_vector.addElement(new Double(0));		// Save to vector
+									accel_y_ts.addOrUpdate(new Millisecond(), 0);	// Save to time	series
+								} else {
+									System.out.println("Accel Value_z = " + 0);
+									accel_z_vector.addElement(new Double(0));		// Save to vector
+									accel_z_ts.addOrUpdate(new Millisecond(), 0);	// Save to time	series
+								}
 							}
 						}
 						
@@ -287,12 +305,12 @@ public class SerialTest implements SerialPortEventListener {
 						// read temperature data
 						value_msb = input_chars.read();
 						value_lsb = input_chars.read();
-						value = (short)((value_msb) << 8) | (value_lsb & 0xff);	
-						p_value = (double)value / 340.0 + 36.53;
+						value = ((short)((value_msb) << 8) | (value_lsb & 0xff))/ 340.0 + 36.53;	
+						//p_value = (double)value / 340.0 + 36.53;
 						//p_value = (((double)value - 32767.5) / 340.0) + 36.53;
 						//System.out.println("Temperature Value = " + p_value);
-						temperature_vector.addElement(new Double(p_value));			// Save to vector
-						temperature_ts.addOrUpdate(new Millisecond(), p_value);		// Save to time	series
+						temperature_vector.addElement(new Double(value));			// Save to vector
+						temperature_ts.addOrUpdate(new Millisecond(), value);		// Save to time	series
 						
 						// See what the next char is
 						check_char = (char)input_chars.read();
@@ -302,9 +320,10 @@ public class SerialTest implements SerialPortEventListener {
 							//construct value from 2 chars
 							value_msb = input_chars.read();
 							value_lsb = input_chars.read();
-							value = (short)((value_msb) << 8) | (value_lsb & 0xff);					
+							value = ((short)((value_msb) << 8) | (value_lsb & 0xff)) * 2000 / 65535;					
 							//p_value = (double)value / 939.650784;
-							p_value = (double)value;
+							//p_value = (double)value;
+							
 							
 							if(i == 0) {
 								System.out.println("Gyro Value_x = " + value);
@@ -366,8 +385,12 @@ public class SerialTest implements SerialPortEventListener {
 				c++;
 				System.out.println("c = " + c);
 
-				if (c == 6000){
-					close();							
+				if (c == 3000){
+					close();			
+					System.out.println("finished closing");
+					System.out.println("STARTING WRITING TO FILE");
+					writeToFile();
+					System.out.println("ENDING WRITING TO FILE");
 					//Thread.currentThread().interrupt();
 					return;							
 				}
@@ -378,10 +401,6 @@ public class SerialTest implements SerialPortEventListener {
 			}
 		}		
 	}
-	
-   public void stop(){
-        exit = true;
-    }
 	
 	public static void writeToFile() {
         PrintStream out = null;
@@ -471,24 +490,33 @@ public class SerialTest implements SerialPortEventListener {
 		// for serial streaming
 		SerialTest main = new SerialTest();
 		main.initialize();
-		Thread t = new Thread() {
-			public void run( ) {
-				//the following line will keep this app alive for 100000 seconds,
-				//waiting for events to occur and responding to them (printing incoming messages to console).
-					try {
-						System.out.println("In run");
-						Thread.sleep(100000000);
-						
-					} catch (InterruptedException ie) {
-						//Thread.currentThread().interrupt();
-					}
-				}
-		};
-		t.start();
-		System.out.println("Started");
+//		Thread t = new Thread() {
+//			public void run( ) {
+//				//the following line will keep this app alive for 100000 seconds,
+//				//waiting for events to occur and responding to them (printing incoming messages to console).
+//				
+//				while(!exit){
+//					try {
+//						System.out.println("In run");
+//						Thread.sleep(100000000);
+//						
+//					} catch (InterruptedException ie) {
+//						//Thread.currentThread().interrupt();
+//					}
+//				}
+//				System.out.println("Exiting Thread!");
+//			}
+//		};
 		
-        String get = "aaa";
-		System.out.println("Started2");
+		//serialThread t = new serialThread();
+		
+		//t.run();
+//		System.out.println("Started");
+//		
+//        String get = "aaa";
+//		System.out.println("Started2");
+		
+		//t.stop();
 
 		
 		/*
@@ -525,7 +553,9 @@ public class SerialTest implements SerialPortEventListener {
         );
         final XYPlot accel_x_plot = accel_x_chart.getXYPlot();
         ValueAxis accel_x_axis = accel_x_plot.getDomainAxis();
-        //accel_x_axis.setAutoRange(true);
+//        NumberAxis accel_x_axis_y = (NumberAxis) accel_x_plot.getRangeAxis();
+//        accel_x_axis_y.setRange(-4.0, 4.0);
+        accel_x_axis.setAutoRange(true);
         //accel_x_axis.setFixedAutoRange(60000.0); 
 		
         // Acceleration Y
@@ -541,7 +571,9 @@ public class SerialTest implements SerialPortEventListener {
         );
         final XYPlot accel_y_plot = accel_y_chart.getXYPlot();
         ValueAxis accel_y_axis = accel_y_plot.getDomainAxis();
-        //accel_y_axis.setAutoRange(true);
+//        NumberAxis accel_y_axis_y = (NumberAxis) accel_y_plot.getRangeAxis();
+//        accel_y_axis_y.setRange(-4.0, 4.0);
+        accel_y_axis.setAutoRange(true);
         //accel_y_axis.setFixedAutoRange(60000.0);       
 
         // Acceleration Z
@@ -557,7 +589,9 @@ public class SerialTest implements SerialPortEventListener {
         );
         final XYPlot accel_z_plot = accel_z_chart.getXYPlot();
         ValueAxis accel_z_axis = accel_z_plot.getDomainAxis();
-        //accel_z_axis.setAutoRange(true);
+//        NumberAxis accel_z_axis_y = (NumberAxis) accel_z_plot.getRangeAxis();
+//        accel_z_axis_y.setRange(-4.0, 4.0);
+        accel_z_axis.setAutoRange(true);
         //accel_z_axis.setFixedAutoRange(60000.0);
         
         // Temperature
@@ -589,7 +623,8 @@ public class SerialTest implements SerialPortEventListener {
         );
         final XYPlot gyro_x_plot = gyro_x_chart.getXYPlot();
         ValueAxis gyro_x_axis = gyro_x_plot.getDomainAxis();
-        gyro_x_axis.setAutoRange(true);
+
+        //gyro_x_axis.setAutoRange(true);
         //gyro_x_axis.setFixedAutoRange(60000.0); 
 		
         // Gyro Y
@@ -669,7 +704,5 @@ public class SerialTest implements SerialPortEventListener {
         
        gyro_frame.pack();
        gyro_frame.setVisible(true);   
-       
-
 	}
 }
