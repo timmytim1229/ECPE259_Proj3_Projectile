@@ -1,3 +1,4 @@
+import static java.lang.Thread.currentThread;
 import java.awt.BorderLayout;
 import java.io.ByteArrayInputStream;
 import java.io.BufferedInputStream;
@@ -17,6 +18,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Timer;
 
 import java.lang.*;
 
@@ -50,6 +52,22 @@ import gnu.io.SerialPortEventListener;
 //TODO: Make sure plots stay open after data reading is complete.
 //TODO: Save data to object to analyze later? Or is text file good enough?
 
+// pulled from https://www.tutorialspoint.com/javaexamples/thread_stop.htm
+// class serialThread implements Runnable {
+//	   private volatile boolean stop = false;
+//	   public void run() {
+//	      while (!stop) {
+//	         System.out.println("running");
+//	      }
+//	      if (stop)
+//	      System.out.println("Detected stop"); 
+//	   }
+//	   public void stop() {
+//	      stop = true;
+//	   }
+//	}
+
+
 public class SerialTest implements SerialPortEventListener {
 	SerialPort serialPort;
     
@@ -69,6 +87,8 @@ public class SerialTest implements SerialPortEventListener {
 	private static final int TIME_OUT = 5000;		// Milliseconds to block while waiting for port open
 	private static final int DATA_RATE = 57600;		// Default bits per second for serial port
 
+	// for stopping threads
+	private volatile boolean stop = false;
 	
 	// The name of the file to open.
     static String FILENAME = "sensor_data.txt";
@@ -241,7 +261,7 @@ public class SerialTest implements SerialPortEventListener {
 							value_msb = input_chars.read();
 							value_lsb = input_chars.read();
 							value = (short)((value_msb) << 8) | (value_lsb & 0xff);					
-							//value = ((double)value - 32767.5) / 8192.0;
+							//value = ((double)value) / 2048.0;
 							//p_value = value;
 							
 							if(i == 0) {
@@ -339,14 +359,14 @@ public class SerialTest implements SerialPortEventListener {
 							gyro_z_ts.delete(gyro_z_ts.getItemCount()-1, gyro_z_ts.getItemCount()-1);
 							//Thread.sleep(2000);
 							validateEndChar = '\n';
-							break;
+							//break;
 						}
 					} while(validateEndChar != '\n');	
 				}
 				c++;
 				System.out.println("c = " + c);
 
-				if (c == 3500){
+				if (c == 6000){
 					close();							
 					//Thread.currentThread().interrupt();
 					return;							
@@ -358,6 +378,10 @@ public class SerialTest implements SerialPortEventListener {
 			}
 		}		
 	}
+	
+   public void stop(){
+        exit = true;
+    }
 	
 	public static void writeToFile() {
         PrintStream out = null;
@@ -437,7 +461,7 @@ public class SerialTest implements SerialPortEventListener {
 //		
 //		return char_check;
 //		}
-
+	
 	/**
 	 * Main.
 	 * 
@@ -448,17 +472,17 @@ public class SerialTest implements SerialPortEventListener {
 		SerialTest main = new SerialTest();
 		main.initialize();
 		Thread t = new Thread() {
-			public void run() {
+			public void run( ) {
 				//the following line will keep this app alive for 100000 seconds,
 				//waiting for events to occur and responding to them (printing incoming messages to console).
-				try {
-					System.out.println("In run");
-					Thread.sleep(100000000);
-					
-				} catch (InterruptedException ie) {
-					Thread.currentThread().interrupt();
+					try {
+						System.out.println("In run");
+						Thread.sleep(100000000);
+						
+					} catch (InterruptedException ie) {
+						//Thread.currentThread().interrupt();
+					}
 				}
-			}
 		};
 		t.start();
 		System.out.println("Started");
