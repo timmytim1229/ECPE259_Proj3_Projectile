@@ -347,7 +347,7 @@ public class SerialTest implements SerialPortEventListener {
 				c++;
 				System.out.println("c = " + c);
 
-				if (c == 3000){
+				if (c == 2000){
 					close();			
 					System.out.println("finished closing");
 					System.out.println("STARTING WRITING TO FILE");
@@ -391,7 +391,7 @@ public class SerialTest implements SerialPortEventListener {
             	out.println("Acceleration_x" + "," + accel_x_itr.next());
             	out.println("Acceleration_y" + "," + accel_y_itr.next());
             	out.println("Acceleration_z" + "," + accel_z_itr.next());
-            	out.println("Temperature" + "," + temperature_itr.next());
+            	//out.println("Temperature" + "," + temperature_itr.next());
             	out.println("Gyro_x" + "," + gyro_x_itr.next());
             	out.println("Gyro_y" + "," + gyro_y_itr.next());
             	out.println("Gyro_z" + "," + gyro_z_itr.next());
