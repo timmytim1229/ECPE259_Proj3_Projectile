@@ -86,6 +86,7 @@ int main(void)
     UARTEnable(UART0_BASE);
     UARTEnable(UART1_BASE);
     UARTEnable(UART2_BASE);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
 
     // read GPS data from UART2 for initial distance
     //readGPS(UART2_BASE);
@@ -93,15 +94,18 @@ int main(void)
     //while(UARTCharsAvail(UART1_BASE)){
     while(1){ //wait for signal from program to exit
     	// toggle GPIO pin for frequency measurement
-    	//GPIOPinWrite(GPIO_PORTC_BASE, GPIO_PIN_4, GPIO_PIN_4);
+
 
     	//mpu6050test(UART0_BASE, I2C1_BASE, MPU6050_ADDRESS);
-    	readMPU6050(UART1_BASE, I2C1_BASE, MPU6050_ADDRESS);
+    	readGPS(UART2_BASE, UART1_BASE);
+    	//UARTCharPut(UART1_BASE, '%');
+    	//GPIOPinWrite(GPIO_PORTB_BASE, GPIO_PIN_6, 1);
+    	//readMPU6050(UART1_BASE, I2C1_BASE, MPU6050_ADDRESS);
     	//readMS5611(UART1_BASE, I2C1_BASE, MS5611_ADDRESS);
 
     	//uartTest();
     	// read whoami: 0x75, should get 68 from it
-    	//GPIOPinWrite(GPIO_PORTC_BASE, GPIO_PIN_4, ~GPIO_PIN_4);
+    	//GPIOPinWrite(GPIO_PORTB_BASE, GPIO_PIN_6, 0);
 
     	//
     }

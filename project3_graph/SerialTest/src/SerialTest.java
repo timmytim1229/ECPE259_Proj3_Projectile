@@ -347,7 +347,7 @@ public class SerialTest implements SerialPortEventListener {
 				c++;
 				System.out.println("c = " + c);
 
-				if (c == 2000){
+				if (c == 3000){
 					close();			
 					System.out.println("finished closing");
 					System.out.println("STARTING WRITING TO FILE");

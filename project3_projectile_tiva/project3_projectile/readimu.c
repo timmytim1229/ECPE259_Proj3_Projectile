@@ -77,57 +77,96 @@ void readMS5611(uint32_t uart_base, uint32_t i2c_base, uint8_t ms5611_address)
 		UARTCharPut(uart_base, rx_buffer[i]);
 }
 
+//void readGPS(uint32_t uart_get_base, uint32_t uart_put_base)
+//{
+//    int num_gps_char = 0;
+//    int gps_return = 0;
+//    char gps_data [128];
+//    char frame_char1, frame_char2, frame_char3;
+//
+//    while(gps_return == 0){
+//		// Read lat/long from GPS
+//		// Search for GPS start characters
+//		// $GP --> GLL <---
+//
+////		//$
+////		gps_data[num_gps_char] = UARTCharGet(uart_get_base);
+////		UARTCharPut(uart_put_base, gps_data[num_gps_char]);
+////		num_gps_char++;
+////		//G
+////		gps_data[num_gps_char] = UARTCharGet(uart_get_base);
+////		UARTCharPut(uart_put_base, gps_data[num_gps_char]);
+////		num_gps_char++;
+////		//P
+////		gps_data[num_gps_char] = UARTCharGet(uart_get_base);
+////		UARTCharPut(uart_put_base, gps_data[num_gps_char]);
+////		num_gps_char++;
+//
+//		frame_char1 = UARTCharGet(uart_get_base);
+////		frame_char2 = UARTCharGet(uart_get_base);
+////		frame_char3 = UARTCharGet(uart_get_base);
+//		//if(frame_char1 == 'G' && frame_char2 == 'G' && frame_char3 == 'A') {
+//		if(frame_char1 == '$') {
+//			// Stuff the "GLL" through the UART
+//			// G
+//			gps_data[num_gps_char] = frame_char1;
+//			UARTCharPut(uart_put_base, gps_data[num_gps_char]);
+//			num_gps_char++;
+////			// L
+////			gps_data[num_gps_char] = frame_char2;
+////			UARTCharPut(uart_put_base, gps_data[num_gps_char]);
+////			num_gps_char++;
+////			// L
+////			gps_data[num_gps_char] = frame_char3;
+////			UARTCharPut(uart_put_base, gps_data[num_gps_char]);
+////			num_gps_char++;
+//			// read until end of the frame (terminated with an \n)
+//			while(gps_data[num_gps_char] != '\n') {
+//				gps_data[num_gps_char] = UARTCharGet(uart_get_base);
+//				UARTCharPut(uart_put_base, gps_data[num_gps_char]);
+//				num_gps_char++;
+//			}
+////			gps_data[num_gps_char] = UARTCharGet(uart_get_base);
+////			UARTCharPut(uart_put_base, gps_data[num_gps_char]);
+//			//UARTCharPut(uart_put_base,'\n'); // send null character
+//			//gps_data[num_gps_char] = '\0';
+//
+//			//gps_return = 1; //return from function
+//		}
+//    }
+//}
+
+
 void readGPS(uint32_t uart_get_base, uint32_t uart_put_base)
 {
     int num_gps_char = 0;
     int gps_return = 0;
-    char gps_data [128];
+    char gps_data;
+    //char gps_data [128];
     char frame_char1, frame_char2, frame_char3;
 
     while(gps_return == 0){
-
-		frame_char1 = UARTCharGet(uart_get_base);
-		frame_char2 = UARTCharGet(uart_get_base);
-		frame_char3 = UARTCharGet(uart_get_base);
-
 		// Read lat/long from GPS
 		// Search for GPS start characters
 		// $GP --> GLL <---
-		if(frame_char1 == 'G' && frame_char2 == 'G' && frame_char3 == 'A') {
 
-			// Stuff the "GLL" through the UART
-			// G
-			gps_data[num_gps_char] = frame_char1;
-			UARTCharPut(uart_put_base, gps_data[num_gps_char]);
-			//f_printf(&LogFile, "%c", gps_data[num_gps_char]);
-			num_gps_char++;
-			// L
-			gps_data[num_gps_char] = frame_char2;
-			UARTCharPut(uart_put_base, gps_data[num_gps_char]);
-			//f_printf(&LogFile, "%c", gps_data[num_gps_char]);
-			num_gps_char++;
-			// L
-			gps_data[num_gps_char] = frame_char3;
-			UARTCharPut(uart_put_base, gps_data[num_gps_char]);
-			//f_printf(&LogFile, "%c", gps_data[num_gps_char]);
+		frame_char1 = UARTCharGet(uart_get_base);
+		if(frame_char1 == '$') {
+
+			//stuff $ through UART
+			gps_data = frame_char1;
+			UARTCharPut(uart_put_base, gps_data);
 			num_gps_char++;
 
 			// read until end of the frame (terminated with an \n)
-			while(gps_data[num_gps_char] != '\n') {
-				gps_data[num_gps_char] = UARTCharGet(uart_get_base);
-				UARTCharPut(uart_put_base, gps_data[num_gps_char]);
-				//f_printf(&LogFile, "%c", gps_data[num_gps_char]);
+			while(gps_data != '\n') {
+				gps_data = UARTCharGet(uart_get_base);
+				UARTCharPut(uart_put_base, gps_data);
 				num_gps_char++;
 			}
-			UARTCharPut(uart_put_base,'\n');
-			//f_printf(&LogFile, "%c", '\n');
-			//UARTCharPut(uart_base,'\n'); // send null character
-			gps_data[num_gps_char] = '\0';
-
-
-//			f_printf(&LogFile, "%s", gps_data);
-//			f_close(&LogFile);
-			gps_return = 1; //return from function
+			//UARTCharPut(uart_put_base,'\n'); // send null character
+			//return from function
+			gps_return = 1;
 		}
     }
 }

@@ -68,7 +68,13 @@ void I2CConfig(uint32_t sysctl_p_i2c, uint32_t gpio_scl, uint32_t scl_pin_num, u
 
 void configureIMU(uint32_t i2c_base, uint8_t mpu6050_address, uint8_t hmc5883l_address, uint8_t ms5611_address)
 {
-    // configure the MPU6050 (gyro/accelerometer)
+    /* configure the MPU6050 (gyro/accelerometer)
+	 * 2g = 16 384 counts/g
+	 * 4g = 8 192 counts/g
+	 * 8g = 4 096 counts/g
+	 * 16g = 2 048 counts/g
+	 *
+	 */
 	I2CSendValue(i2c_base, mpu6050_address,  0x6B, 0x00);                  		// exit sleep
 	I2CSendValue(i2c_base, mpu6050_address,  0x19, 109);                   		// sample rate = 8kHz / 110 = 72.7Hz
 	I2CSendValue(i2c_base, mpu6050_address,  0x1B, 0x18);                  		// gyro full scale = +/- 2000dps
