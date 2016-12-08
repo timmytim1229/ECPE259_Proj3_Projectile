@@ -374,8 +374,8 @@ public class SerialTest implements SerialPortEventListener {
         Iterator<Double> accel_z_itr = accel_z_vector.iterator();
         Iterator<Double> temperature_itr = temperature_vector.iterator();
         Iterator<Double> gyro_x_itr = gyro_x_vector.iterator();
-        Iterator<Double> gyro_y_itr = gyro_x_vector.iterator();
-        Iterator<Double> gyro_z_itr = gyro_x_vector.iterator();
+        Iterator<Double> gyro_y_itr = gyro_y_vector.iterator();
+        Iterator<Double> gyro_z_itr = gyro_z_vector.iterator();
         		
         try {
             System.out.println("Start writing to file.");
