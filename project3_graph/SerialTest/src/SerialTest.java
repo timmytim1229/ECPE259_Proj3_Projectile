@@ -42,7 +42,6 @@ import org.jfree.data.time.RegularTimePeriod;
 import org.jfree.data.time.TimeSeriesCollection;
 import org.jfree.chart.axis.NumberAxis;
 
-
 import gnu.io.CommPort;
 import gnu.io.CommPortIdentifier;
 import gnu.io.CommPortIdentifier;
@@ -251,7 +250,7 @@ public class SerialTest implements SerialPortEventListener {
 				if(packetStartChar == 'S') {		
 					
 					// See what the next char is
-					//check_char = (char)input_chars.read();
+					check_char = (char)input_chars.read();
 					//System.out.println(check_char);
 					do{	
 						//input_chars.read();
@@ -261,7 +260,7 @@ public class SerialTest implements SerialPortEventListener {
 							//construct value from 2 chars
 							value_msb = input_chars.read();
 							value_lsb = input_chars.read();
-							value = ((short)((value_msb) << 8) | (value_lsb & 0xff)) / 8192.0;					
+							value = ((short)((value_msb) << 8) | (value_lsb & 0xff)) / 4096.0;					
 							if(i == 0) {
 								System.out.println("Accel Value_x = " + value);
 								accel_x_vector.addElement(new Double(value));		// Save to vector
@@ -279,19 +278,19 @@ public class SerialTest implements SerialPortEventListener {
 						}
 						
 						// See what the next char is
-						//check_char = (char)input_chars.read();
+						check_char = (char)input_chars.read();
 						//System.out.println(check_char);
 						
 						// read temperature data
-//						value_msb = input_chars.read();
-//						value_lsb = input_chars.read();
-//						value = ((short)((value_msb) << 8) | (value_lsb & 0xff))/ 340.0 + 36.53;	
-//						//System.out.println("Temperature Value = " + p_value);
-//						temperature_vector.addElement(new Double(value));			// Save to vector
-//						temperature_ts.addOrUpdate(new Millisecond(), value);		// Save to time	series
+						value_msb = input_chars.read();
+						value_lsb = input_chars.read();
+						value = ((short)((value_msb) << 8) | (value_lsb & 0xff))/ 340.0 + 36.53;	
+						//System.out.println("Temperature Value = " + p_value);
+						temperature_vector.addElement(new Double(value));			// Save to vector
+						temperature_ts.addOrUpdate(new Millisecond(), value);		// Save to time	series
 						
 						// See what the next char is
-						//check_char = (char)input_chars.read();
+						check_char = (char)input_chars.read();
 						//System.out.println(check_char);
 						
 						for(int i = 0; i < 3; i++) {
@@ -369,8 +368,6 @@ public class SerialTest implements SerialPortEventListener {
 //							mag_z_ts.addOrUpdate(new Millisecond(), value);		// Save to time	series			
 //						}
 						
-						
-						
 						validateEndChar = (char)input_chars.read();
 						if(validateEndChar != '\n') {
 							System.out.println("ERROR, LAST CHARACTER IS NOT \n!");
@@ -414,7 +411,7 @@ public class SerialTest implements SerialPortEventListener {
 					System.out.println("STARTING WRITING TO FILE");
 					writeToFile();
 					System.out.println("ENDING WRITING TO FILE");
-					//Runtime.getRuntime().exec("matlab -r antonio");
+					Runtime.getRuntime().exec("matlab -r antonio");
 					
 					//Thread.currentThread().interrupt();
 					return;							

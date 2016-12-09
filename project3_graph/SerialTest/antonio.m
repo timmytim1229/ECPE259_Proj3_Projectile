@@ -6,38 +6,44 @@ clear
 %% Setup data transfer/ Aqcuisition
 % gravitational acceleration (m/s2)
 g = 9.80665;
-sampleRate = .01;
+sampleRate = 1/.013/10;     % Measured
 % david says 10k
 
 %% Read Data from file
 delimiterIn = ',';
 headerlinesIn = 1;
 %[filename, path] = uigetfile('.txt');
-filename = 'sensor_data.txt';
+filename = 'sensor_data_handtest2.txt';
 %filename = 'sensor_data.txt';
 %path = 'C:\git_projects\ECPE259_Proj3_Projectile\project3_graph\SerialTest\';
 sensorData = importdata(filename, delimiterIn);
 
 dataSize = length(sensorData.data);
 % Specify number of sensors to spilt up data
-numberOfSensors = 7;
-numVals = uint32(dataSize/7)+1;
+numberOfSensors = 10;
+numVals = ceil(dataSize/numberOfSensors);
+
 % Preallocate 
-accel_x = zeros(1, int32(dataSize/numberOfSensors)+1);
-accel_y = zeros(1, int32(dataSize/numberOfSensors)+1);
-accel_z = zeros(1, int32(dataSize/numberOfSensors)+1);
-% temperature = zeros(1, int32(dataSize/numberOfSensors)+1);
-gyro_x = zeros(1, int32(dataSize/numberOfSensors)+1);
-gyro_y = zeros(1, int32(dataSize/numberOfSensors)+1);
-gyro_z = zeros(1, int32(dataSize/numberOfSensors)+1);
+accel_x = zeros(1, numVals);
+accel_y = zeros(1, numVals);
+accel_z = zeros(1, numVals);
+% temperature = zeros(1, numVals);
+gyro_x = zeros(1, numVals);
+gyro_y = zeros(1, numVals);
+gyro_z = zeros(1, numVals);
+quat_w = zeros(1, numVals);
+quat_x = zeros(1, numVals);
+quat_y = zeros(1, numVals);
+quat_z = zeros(1, numVals);
+
 % Read values from specified location
 for i = 1:dataSize
     if strcmp(sensorData.textdata(i),'Acceleration_x')
-        accel_x(ceil(i/numberOfSensors)) = sensorData.data(i).*g;
+        accel_x(ceil(i/numberOfSensors)) = sensorData.data(i);
     elseif strcmp(sensorData.textdata(i),'Acceleration_y')
-        accel_y(ceil(i/numberOfSensors)) = sensorData.data(i).*g;
+        accel_y(ceil(i/numberOfSensors)) = sensorData.data(i);
     elseif strcmp(sensorData.textdata(i),'Acceleration_z')
-        accel_z(ceil(i/numberOfSensors)) = sensorData.data(i).*g;
+        accel_z(ceil(i/numberOfSensors)) = sensorData.data(i);
 %     elseif strcmp(sensorData.textdata(i),'Temperature')
 %         temperature(ceil(i/numberOfSensors)) = sensorData.data(i);
     elseif strcmp(sensorData.textdata(i),'Gyro_x')
@@ -46,8 +52,15 @@ for i = 1:dataSize
         gyro_y(ceil(i/numberOfSensors)) = sensorData.data(i);
     elseif strcmp(sensorData.textdata(i),'Gyro_z')
         gyro_z(ceil(i/numberOfSensors)) = sensorData.data(i);
+    elseif strcmp(sensorData.textdata(i),'Quat_w')
+        quat_w(ceil(i/numberOfSensors)) = sensorData.data(i);
+    elseif strcmp(sensorData.textdata(i),'Quat_x')
+        quat_x(ceil(i/numberOfSensors)) = sensorData.data(i);
+    elseif strcmp(sensorData.textdata(i),'Quat_y')
+        quat_y(ceil(i/numberOfSensors)) = sensorData.data(i);
+    elseif strcmp(sensorData.textdata(i),'Quat_z')
+        quat_z(ceil(i/numberOfSensors)) = sensorData.data(i);
     end
-        
 end
 
 
@@ -60,18 +73,49 @@ end
 %%% THE FLLOWING STEPS SHOULD BE DONE PER VALUE OF theta(i), phi(i), AND psi(i)
 
 % Get angles from gyro data
+%theta = cumtrapz(gyro_y)*sampleRate;
+%phi = cumtrapz(gyro_x)*sampleRate;
+%psi = cumtrapz(gyro_z)*sampleRate;
+
+%temp = accel_y;
+%accel_y = accel_x;
+%accel_x = temp;
+%accel_z = - accel_z;
+
+%temp = gyro_y;
+%gyro_y = gyro_x;
+%gyro_x = temp;
+%gyro_z = -gyro_z;
+
 theta = cumtrapz(gyro_y)*sampleRate;
 phi = cumtrapz(gyro_x)*sampleRate;
 psi = cumtrapz(gyro_z)*sampleRate;
 
-for i = 1:numVals
-    % Pitch (rotationa about y-axis)
-    theta1(i) = gyro_y(i);
-    % Roll (rotationa about x-axis)
-    phi1(i) = gyro_x(i);
-    % Yaw (rotationa about z-axis)
-    psi1(i) = gyro_z(i);
 
+
+for i = 1:numVals
+    % Pitch (rotation about y-axis)
+    %theta1(i) = gyro_y(i);
+    % Roll (rotation about x-axis)
+    %phi1(i) = gyro_x(i);
+    % Yaw (rotation about z-axis)
+    %psi1(i) = gyro_z(i);
+    
+    quat = [quat_w(i).^2 + quat_x(i).^2 - quat_y(i).^2 - quat_z(i).^2,...
+                    2.*quat_x(i).*quat_y(i) - 2.*quat_w(i).*quat_z(i),...
+                    2.*quat_x(i).*quat_z(i) + 2.*quat_x(i).*quat_y(i);
+                    
+            2.*quat_x(i).*quat_y(i) + 2.*quat_w(i).*quat_z(i),... 
+                    quat_w(i).^2 - quat_x(i).^2+quat_y(i).^2 - quat_z(i).^2,... 
+                    2.*quat_y(i).*quat_z(i) - 2.*quat_w(i).*quat_x(i);
+                    
+            2.*quat_x(i).*quat_z(i) - 2.*quat_w(i)*quat_y(i),...
+                    2.*quat_y(i).*quat_z(i) + 2.*quat_w(i).*quat_x(i),...
+                    quat_w(i).^2 - quat_x(i).^2 - quat_y(i).^2 + quat_z(i).^2];
+
+    quat = inv(quat);
+    
+    
     % Rotation matrix from inertial to body frame 
     R_ib = [cos(psi(i))*cos(theta(i)), cos(theta(i))*sin(psi(i)), -sin(theta(i));
             cos(psi(i))*sin(phi(i))*sin(theta(i))-cos(phi(i))*sin(psi(i)), ...
@@ -90,21 +134,34 @@ for i = 1:numVals
     D = [1, sin(phi(i))*tan(theta(i)), cos(phi(i))*tan(theta(i));
          0, cos(phi(i)), -sin(phi(i));
          0, sin(phi(i))/cos(theta(i)), cos(phi(i))/cos(theta(i))];
+     
     %% Translate Sensor data to inertial (ground) frame
-    %Define Motion Vectors
-    accel = [accel_x(i), accel_y(i), accel_z(i)];
-    gyro_m = [gyro_x(i), gyro_y(i), gyro_z(i)];
-    % Translate measured acceleromoete data to inertial frame
-    a(i,:) = (R_ib*accel.'- [0; 0; g])';
+    % Define Motion Vectors (intertial physical accel)
+    accel = [accel_x(i); accel_y(i); accel_z(i)];   %1x3
+    gyro_m = [gyro_x(i), gyro_y(i), gyro_z(i)];     %1x3
+    % Translate measured acceleromoeter data to inertial frame
+    %%%a_body(i,:) = (R_ib*accel + [0; 0; g])';
+    a_body(i,:) = quat * accel;
+    %%a_body = (accel + R_ib*[0; 0; g]);
+    %%a_intert(i,:) = (R_bi*a_body + [0; 0; g]);            
     % Translate measured gyroscope data to inertial frame
-    gyro(i,:) = gyro_m*D;
+    %gyro(i,:) = (gyro_m*D).';       % 1x3 * 3x3 = 1x3
+    gyro(i,:) = [gyro_x(i) + gyro_y(i).*sin(phi(i)).*tan(theta(i)) + gyro_z(i).*cos(phi(i)).*tan(theta(i)),
+                 gyro_y(i).*cos(theta(i)) - gyro_z(i).*sin(phi(i)),
+                 gyro_y(i).*sin(phi(i))./cos(theta(i)) + gyro_z(i).*cos(phi(i))./cos(theta(i))].';
 end
+
+%theta_inert = cumtrapz(gyro(:,1)).*sampleRate;
+%phi_inert = cumtrapz(gyro(:,2)).*sampleRate;
+%psi_inert = -cumtrapz(gyro(:,3)).*sampleRate;
 
 %% Calculate Displacement and Plot
 t = 0:sampleRate:double(numVals-1)*(sampleRate);
 % Take the integral of the acceleration to get the velocity
-v = cumtrapz(a.*9.81) .* sampleRate;
+%v = cumtrapz(a.*9.81) .* sampleRate;
+v = cumtrapz(a_body) .* sampleRate;
 % Take the integral of the velocity to get the displacement
+%u = cumtrapz(v) .* sampleRate;
 u = cumtrapz(v) .* sampleRate;
 
 % % Get the index values for each sample
@@ -119,14 +176,49 @@ u = cumtrapz(v) .* sampleRate;
 % u2 = u - y;
 
 % also for unRotated data
-v_z = cumtrapz(accel_z.*9.81) .* sampleRate;
+v_z = cumtrapz(accel_z) .* sampleRate;
 u_z = cumtrapz(v_z) .* sampleRate;
-v_y = cumtrapz(accel_y.*9.81) .* sampleRate;
+v_y = cumtrapz(accel_y) .* sampleRate;
 u_y = cumtrapz(v_y) .* sampleRate;
-v_x = cumtrapz(accel_x.*9.81) .* sampleRate;
+v_x = cumtrapz(accel_x) .* sampleRate;
 u_x = cumtrapz(v_x) .* sampleRate;
-% Plot the original Vertical-displacement
-figure('Name','UnAdjusted Accel(x) Data','NumberTitle','on');
+
+% Plot the original Side-displacement - X
+figure('Name','UnAdjusted Accel(X) Data','NumberTitle','on');
+subplot(3,1,3), plot(t, u_x);
+title('Plot of Displacement vs Time (Experimental)')
+xlabel('t [s]');
+ylabel('u(t) [m]');
+
+subplot(3,1,2), plot(t, v_x);
+title('Plot of Velocity vs Time (Experimental)')
+xlabel('t [s]');
+ylabel('v(t) [m/s]');
+
+subplot(3,1,1), plot(t, accel_x);
+title('Plot of Acceleration vs Time (Experimental)')
+xlabel('t [s]');
+ylabel('a(t) [m s^-2]');
+
+% Plot the original Forward-displacement - Y
+figure('Name','UnAdjusted Accel(y) Data','NumberTitle','on');
+subplot(3,1,3), plot(t, u_y);
+title('Plot of Displacement vs Time (Experimental)')
+xlabel('t [s]');
+ylabel('u(t) [m]');
+
+subplot(3,1,2), plot(t, v_y);
+title('Plot of Velocity vs Time (Experimental)')
+xlabel('t [s]');
+ylabel('v(t) [m/s]');
+
+subplot(3,1,1), plot(t, accel_y);
+title('Plot of Acceleration vs Time (Experimental)')
+xlabel('t [s]');
+ylabel('a(t) [m s^-2]');
+
+% Plot the original Z-displacement - Z
+figure('Name','UnAdjusted Accel(Z) Data','NumberTitle','on');
 subplot(3,1,3), plot(t, u_z);
 title('Plot of Displacement vs Time (Experimental)')
 xlabel('t [s]');
@@ -142,8 +234,45 @@ title('Plot of Acceleration vs Time (Experimental)')
 xlabel('t [s]');
 ylabel('a(t) [m s^-2]');
 
-% Plot the adjusted displacement
-figure('Name','Rotated Accel(x) Data','NumberTitle','on');
+
+
+
+% Plot the adjusted displacement - X
+figure('Name','Rotated Accel(X) Data','NumberTitle','on');
+subplot(3,1,3), plot(t, u(:,1));
+title('Plot of Displacement vs Time (Experimental)')
+xlabel('t [s]');
+ylabel('u(t) [m]');
+
+subplot(3,1,2), plot(t, v(:,1));
+title('Plot of Velocity vs Time (Experimental)')
+xlabel('t [s]');
+ylabel('v(t) [m/s]');
+
+subplot(3,1,1), plot(t, a_body(:,1));
+title('Plot of Acceleration vs Time (Experimental)')
+xlabel('t [s]');
+ylabel('a(t) [m s^-2]');
+
+% Plot the adjusted displacement - Y
+figure('Name','Rotated Accel(Y) Data','NumberTitle','on');
+subplot(3,1,3), plot(t, u(:,2));
+title('Plot of Displacement vs Time (Experimental)')
+xlabel('t [s]');
+ylabel('u(t) [m]');
+
+subplot(3,1,2), plot(t, v(:,2));
+title('Plot of Velocity vs Time (Experimental)')
+xlabel('t [s]');
+ylabel('v(t) [m/s]');
+
+subplot(3,1,1), plot(t, a_body(:,2));
+title('Plot of Acceleration vs Time (Experimental)')
+xlabel('t [s]');
+ylabel('a(t) [m s^-2]');
+
+% Plot the adjusted displacement - Z
+figure('Name','Rotated Accel(Z) Data','NumberTitle','on');
 subplot(3,1,3), plot(t, u(:,3));
 title('Plot of Displacement vs Time (Experimental)')
 xlabel('t [s]');
@@ -154,10 +283,12 @@ title('Plot of Velocity vs Time (Experimental)')
 xlabel('t [s]');
 ylabel('v(t) [m/s]');
 
-subplot(3,1,1), plot(t, a(:,3));
+subplot(3,1,1), plot(t, a_body(:,3));
 title('Plot of Acceleration vs Time (Experimental)')
 xlabel('t [s]');
 ylabel('a(t) [m s^-2]');
+
+
 
 % Plot the Gyro Data
 figure('Name','UnAdjusted Gyro Data','NumberTitle','on');
