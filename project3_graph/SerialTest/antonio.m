@@ -6,7 +6,7 @@ clear
 %% Setup data transfer/ Aqcuisition
 % gravitational acceleration (m/s2)
 g = 9.80665;
-sampleRate = 1/.013;     % Measured
+samplTime = .013;     % Measured
 
 %% Read Data from file
 delimiterIn = ',';
@@ -72,9 +72,9 @@ end
 %%% THE FLLOWING STEPS SHOULD BE DONE PER VALUE OF theta(i), phi(i), AND psi(i)
 
 % Get angles from gyro data
-%theta = cumtrapz(gyro_y)*sampleRate;
-%phi = cumtrapz(gyro_x)*sampleRate;
-%psi = cumtrapz(gyro_z)*sampleRate;
+%theta = cumtrapz(gyro_y)*sampleTime;
+%phi = cumtrapz(gyro_x)*sampleTime;
+%psi = cumtrapz(gyro_z)*sampleTime;
 
 temp = accel_y;
 accel_y = accel_x;
@@ -102,9 +102,9 @@ quat_z = quat_z(350:end);
 numVals = numVals - 350;
 
 
-theta = cumtrapz(gyro_x)*sampleRate;
-phi = cumtrapz(gyro_y)*sampleRate;
-psi = cumtrapz(gyro_z)*sampleRate;
+theta = cumtrapz(gyro_x)*samplTime;
+phi = cumtrapz(gyro_y)*samplTime;
+psi = cumtrapz(gyro_z)*samplTime;
 
 
 
@@ -167,18 +167,24 @@ for i = 1:numVals+1
                  gyro_y(i).*sin(phi(i))./cos(theta(i)) + gyro_z(i).*cos(phi(i))./cos(theta(i))].';
 end
 
-%theta_inert = cumtrapz(gyro(:,1)).*sampleRate;
-%phi_inert = cumtrapz(gyro(:,2)).*sampleRate;
-%psi_inert = -cumtrapz(gyro(:,3)).*sampleRate;
+%theta_inert = cumtrapz(gyro(:,1)).*sampleTime;
+%phi_inert = cumtrapz(gyro(:,2)).*sampleTime;
+%psi_inert = -cumtrapz(gyro(:,3)).*sampleTime;
 
 %% Calculate Displacement and Plot
-t = 0:sampleRate:double(numVals)*sampleRate;
+t = 0:samplTime:double(numVals)*samplTime;
 % Take the integral of the acceleration to get the velocity
-%v = cumtrapz(a.*9.81) .* sampleRate;
-v = cumtrapz(a_body) .* sampleRate;
+%v = cumtrapz(a.*9.81) .* sampleTime;
+v = cumtrapz(a_body) .* samplTime;
+[P_v,S_v] = polyfit([t;t]',[v(:,1) v(:,3)],2); % fit quadratic function to our velocityd
+Y_v = polyval(P_v,t);
+% Remove average from data
+v(:,1) = v(:,1)-Y_v';
+v(:,3) = v(:,3) - Y_v';
+
 % Take the integral of the velocity to get the displacement
-%u = cumtrapz(v) .* sampleRate;
-u = cumtrapz(v) .* sampleRate;
+%u = cumtrapz(v) .* sampleTime;
+u = cumtrapz(v) .* samplTime;
 
 % % Get the index values for each sample
 % x_t = (0:numVals - 1)';
@@ -192,12 +198,12 @@ u = cumtrapz(v) .* sampleRate;
 % u2 = u - y;
 
 % also for unRotated data
-v_z = cumtrapz(accel_z) .* sampleRate;
-u_z = cumtrapz(v_z) .* sampleRate;
-v_y = cumtrapz(accel_y) .* sampleRate;
-u_y = cumtrapz(v_y) .* sampleRate;
-v_x = cumtrapz(accel_x) .* sampleRate;
-u_x = cumtrapz(v_x) .* sampleRate;
+v_z = cumtrapz(accel_z) .* samplTime;
+u_z = cumtrapz(v_z) .* samplTime;
+v_y = cumtrapz(accel_y) .* samplTime;
+u_y = cumtrapz(v_y) .* samplTime;
+v_x = cumtrapz(accel_x) .* samplTime;
+u_x = cumtrapz(v_x) .* samplTime;
 
 % Plot the original Side-displacement - X
 figure('Name','UnAdjusted Accel(X) Data','NumberTitle','on');
@@ -363,7 +369,7 @@ v_o = sqrt(2*g*s*sin(angle)+(4/m)*(.5*k*s^2));
 t_air = (-v_o-sqrt(v_o^2-2*g*y_o))/g;
 t_g = 2.4472;
 %t_air = 2*v_o*sin(angle)/g;
-t_p = 0:sampleRate:t_g;
+t_p = 0:samplTime:t_g;
 % Theoretical Motion Eqns
 y = y_o + v_o*sin(angle).*t_p -.5*g*t_p.^2;
 x = v_o*t_p;
@@ -372,4 +378,4 @@ x = v_o*t_p;
 
 
 %% Error
-x(end)
+
