@@ -81,9 +81,9 @@ accel_y = accel_x;
 accel_x = temp;
 accel_z = - accel_z;
 
-accel_y = accel_y(350:end)*g;
-accel_x = accel_x(350:end)*g;
-accel_z = accel_z(350:end)*g;
+accel_y = accel_y(350:end);
+accel_x = accel_x(350:end);
+accel_z = accel_z(350:end);
 
 temp = gyro_y;
 gyro_y = gyro_x;
@@ -157,7 +157,7 @@ for i = 1:numVals+1
     gyro_m = [gyro_x(i), gyro_y(i), gyro_z(i)];     %1x3
     % Translate measured acceleromoeter data to inertial frame
     %%%a_body(i,:) = (R_ib*accel + [0; 0; g])';
-    a_body(i,:) = iquat * accel + [0; 0; g];
+    a_body(i,:) = iquat * accel;
     %%a_body = (accel + R_ib*[0; 0; g]);
     %%a_intert(i,:) = (R_bi*a_body + [0; 0; g]);            
     % Translate measured gyroscope data to inertial frame
