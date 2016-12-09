@@ -1,8 +1,5 @@
-<<<<<<< HEAD
-=======
 Start Time: 12/07/16 11:11:11
 sensor,value
->>>>>>> ccda821da0249e0f24464955d4fa9d5e91020e40
 Acceleration_x,0.05517578125
 Acceleration_y,0.7890625
 Acceleration_z,1.5615234375

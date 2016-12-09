@@ -38,6 +38,7 @@ import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.time.Millisecond;
 import org.jfree.data.time.TimeSeries;
+import org.jfree.data.time.RegularTimePeriod;
 import org.jfree.data.time.TimeSeriesCollection;
 import org.jfree.chart.axis.NumberAxis;
 
@@ -109,6 +110,11 @@ public class SerialTest implements SerialPortEventListener {
     public static Vector<Double> mag_y_vector = new Vector<Double>(3,1);
     public static Vector<Double> mag_z_vector = new Vector<Double>(3,1);
     public static Vector<Double> temperature_vector = new Vector<Double>(3,1);
+    public static Vector<Double> quat_w_vector = new Vector<Double>(3,1);
+    public static Vector<Double> quat_x_vector = new Vector<Double>(3,1);
+    public static Vector<Double> quat_y_vector = new Vector<Double>(3,1);
+    public static Vector<Double> quat_z_vector = new Vector<Double>(3,1);
+
     
     // Sensor time series (ts) initialization for real time plots
     //Millisecond.class goes into ts parameter
@@ -123,6 +129,10 @@ public class SerialTest implements SerialPortEventListener {
     static TimeSeries mag_y_ts = new TimeSeries("barometer_data");
     static TimeSeries mag_z_ts = new TimeSeries("barometer_data");
     static TimeSeries temperature_ts = new TimeSeries("temperature_data");
+	static TimeSeries quat_w_ts = new TimeSeries("quat_w_data");
+	static TimeSeries quat_x_ts = new TimeSeries("quat_x_data");
+	static TimeSeries quat_y_ts = new TimeSeries("quat_y_data");
+	static TimeSeries quat_z_ts = new TimeSeries("quat_z_data");
     
     int c = 0;
     /**
@@ -224,6 +234,8 @@ public class SerialTest implements SerialPortEventListener {
 				short combine_value;
 				double value;
 				double p_value; 					// precise value
+				RegularTimePeriod sample_rate, sample_rate2;
+				long ms1 = 0, ms2, ms_sum = 0, ms_total = 0, ms_final = 0;
 
 				packetStartChar = (char)input_chars.read();				
 				//System.out.println("1st Input Char = " + packetStartChar);
@@ -285,7 +297,8 @@ public class SerialTest implements SerialPortEventListener {
 							//construct value from 2 chars
 							value_msb = input_chars.read();
 							value_lsb = input_chars.read();
-							value = ((short)((value_msb) << 8) | (value_lsb & 0xff)) * 2000 / 65535;					
+							//value = ((short)((value_msb) << 8) | (value_lsb & 0xff)) * 1000 / 65535;
+							value = ((short)((value_msb) << 8) | (value_lsb & 0xff)) * 1000 / 65535;
 
 							if(i == 0) {
 								System.out.println("Gyro Value_x = " + value);
@@ -301,7 +314,42 @@ public class SerialTest implements SerialPortEventListener {
 								gyro_z_ts.addOrUpdate(new Millisecond(), value);	// Save to time	series
 							}
 						}
-							
+						check_char = (char)input_chars.read();	// read W
+						System.out.println(check_char);
+						
+						
+						// read quaternions
+						for(int i = 0; i < 4; i++) {
+							//construct value from 2 chars
+							value_msb = input_chars.read();
+							value_lsb = input_chars.read();
+							value = (float)((short)((value_msb) << 8) | (value_lsb & 0xff)) / 16384.0;					
+							if(i == 0) {
+								System.out.println("Quaternion_w = " + value);
+								quat_w_vector.addElement(new Double(value));		// Save to vector
+								quat_w_ts.addOrUpdate(new Millisecond(), value);	// Save to time	series
+							} else if(i == 1) {
+								System.out.println("Quaternion_x = " + value);
+								quat_x_vector.addElement(new Double(value));		// Save to vector
+								quat_x_ts.addOrUpdate(new Millisecond(), value);	// Save to time	series
+							} else if(i == 2) {
+								System.out.println("Quaternion_y = " + value);
+								quat_y_vector.addElement(new Double(value));		// Save to vector
+								quat_y_ts.addOrUpdate(new Millisecond(), value);	// Save to time	series
+							} else {
+								System.out.println("Quaternion_z = " + value);
+								quat_z_vector.addElement(new Double(value));		// Save to vector
+								quat_z_ts.addOrUpdate(new Millisecond(), value);	// Save to time	series
+							}
+						}
+						
+
+						sample_rate = quat_z_ts.getTimePeriod(accel_z_ts.getItemCount()-1);
+						sample_rate2 = quat_z_ts.getTimePeriod(accel_z_ts.getItemCount()-2);
+						ms1 = sample_rate.getLastMillisecond();
+						ms2 = sample_rate2.getLastMillisecond();
+						ms_sum += ms1 - ms2;
+						ms_total++;
 //						else if (check_char == MAGNETOMETER_ID)
 //						{
 //							value = Integer.parseInt(input.readLine());			// convert input string to int
@@ -330,25 +378,35 @@ public class SerialTest implements SerialPortEventListener {
 							accel_y_ts.delete(accel_y_ts.getItemCount()-1, accel_y_ts.getItemCount()-1);
 							accel_z_vector.remove(accel_z_vector.size()-1);
 							accel_z_ts.delete(accel_z_ts.getItemCount()-1, accel_z_ts.getItemCount()-1);
-							temperature_vector.remove(temperature_vector.size()-1);
-							temperature_ts.delete(temperature_ts.getItemCount()-1, temperature_ts.getItemCount()-1);
+//							temperature_vector.remove(temperature_vector.size()-1);
+//							temperature_ts.delete(temperature_ts.getItemCount()-1, temperature_ts.getItemCount()-1);
 							gyro_x_vector.remove(gyro_x_vector.size()-1);
 							gyro_x_ts.delete(gyro_x_ts.getItemCount()-1, gyro_x_ts.getItemCount()-1);
 							gyro_y_vector.remove(gyro_y_vector.size()-1);
 							gyro_y_ts.delete(gyro_y_ts.getItemCount()-1, gyro_y_ts.getItemCount()-1);
 							gyro_z_vector.remove(gyro_z_vector.size()-1);
 							gyro_z_ts.delete(gyro_z_ts.getItemCount()-1, gyro_z_ts.getItemCount()-1);
+							quat_w_vector.remove(quat_w_vector.size()-1);
+							quat_w_ts.delete(quat_w_ts.getItemCount()-1, quat_w_ts.getItemCount()-1);
+							quat_x_vector.remove(quat_x_vector.size()-1);
+							quat_x_ts.delete(quat_x_ts.getItemCount()-1, quat_x_ts.getItemCount()-1);
+							quat_y_vector.remove(quat_y_vector.size()-1);
+							quat_y_ts.delete(quat_y_ts.getItemCount()-1, quat_y_ts.getItemCount()-1);
+							quat_z_vector.remove(quat_z_vector.size()-1);
+							quat_z_ts.delete(quat_z_ts.getItemCount()-1, quat_z_ts.getItemCount()-1);
 							//Thread.sleep(2000);
-							validateEndChar = '\n';
-							//break;
+							//validateEndChar = '\n';
+							break;
 						}
 					} while(validateEndChar != '\n');	
 				}
 				c++;
 				System.out.println("c = " + c);
 
-				if (c == 3000){
-					close();			
+				if (c == 1000){
+					close();	
+					ms_final = ms_sum / ms_total;
+					System.out.println("Sample Rate = " + ms_final);
 					System.out.println("finished closing");
 					System.out.println("STARTING WRITING TO FILE");
 					writeToFile();
@@ -372,10 +430,15 @@ public class SerialTest implements SerialPortEventListener {
         Iterator<Double> accel_x_itr = accel_x_vector.iterator();
         Iterator<Double> accel_y_itr = accel_y_vector.iterator();
         Iterator<Double> accel_z_itr = accel_z_vector.iterator();
-        Iterator<Double> temperature_itr = temperature_vector.iterator();
+        //Iterator<Double> temperature_itr = temperature_vector.iterator();
         Iterator<Double> gyro_x_itr = gyro_x_vector.iterator();
         Iterator<Double> gyro_y_itr = gyro_y_vector.iterator();
         Iterator<Double> gyro_z_itr = gyro_z_vector.iterator();
+        Iterator<Double> quat_w_itr = quat_w_vector.iterator();
+        Iterator<Double> quat_x_itr = quat_x_vector.iterator();
+        Iterator<Double> quat_y_itr = quat_y_vector.iterator();
+        Iterator<Double> quat_z_itr = quat_z_vector.iterator();
+        
         		
         try {
             System.out.println("Start writing to file.");
@@ -395,6 +458,10 @@ public class SerialTest implements SerialPortEventListener {
             	out.println("Gyro_x" + "," + gyro_x_itr.next());
             	out.println("Gyro_y" + "," + gyro_y_itr.next());
             	out.println("Gyro_z" + "," + gyro_z_itr.next());
+            	out.println("Quat_w" + "," + quat_w_itr.next());
+            	out.println("Quat_x" + "," + quat_x_itr.next());
+            	out.println("Quat_y" + "," + quat_y_itr.next());
+            	out.println("Quat_z" + "," + quat_z_itr.next());
             }
         } catch (ArrayIndexOutOfBoundsException e) {
             System.err.println("ArrayIndexOutOfBoundsException Error:" +
