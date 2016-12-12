@@ -1,0 +1,66 @@
+# Compiled source #
+###################
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+
+# Packages #
+############
+# it's better to unpack these files and commit the raw source
+# git has its own built in compression methods
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Logs and databases #
+######################
+*.log
+*.sql
+*.sqlite
+*.txt
+
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Code Composer generated files #
+#################################
+*.launch
+*.prefs
+*.atsln
+*.xml
+*.cproj
+*.ccsproject
+*.cproject
+*.project
+*.cmd
+*.d
+*.opt
+*.obj
+*.map
+
+# Project Directories #
+#######################
+.metadata/
+dvt/
+RemoteSystemsTempFiles/
+.launches/
+.settings/
+Debug/
+targetConfigs/
+.vs/
+*.m~

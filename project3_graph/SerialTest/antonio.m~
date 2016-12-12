@@ -12,7 +12,7 @@ samplTime = .013;     % Measured
 delimiterIn = ',';
 headerlinesIn = 1;
 %[filename, path] = uigetfile('.txt');
-filename = 'sensor_data_newlauncherquats1.txt';
+filename = 'sensor_data_handtest2.txt';
 %filename = 'sensor_data.txt';
 %path = 'C:\git_projects\ECPE259_Proj3_Projectile\project3_graph\SerialTest\';
 sensorData = importdata(filename, delimiterIn);
@@ -77,29 +77,29 @@ end
 %psi = cumtrapz(gyro_z)*sampleTime;
 
 temp = accel_y;
-accel_y = accel_x*g;
-accel_x = temp*g;
-accel_z = - accel_z*g;
+accel_y = accel_x;
+accel_x = temp;
+accel_z = - accel_z;
 
-%accel_y = accel_y(350:end)*g;
-%accel_x = accel_x(350:end)*g;
-%accel_z = accel_z(350:end)*g;
+accel_y = accel_y(350:end)*g;
+accel_x = accel_x(350:end)*g;
+accel_z = accel_z(350:end)*g;
 
 temp = gyro_y;
 gyro_y = gyro_x;
 gyro_x = temp;
 gyro_z = -gyro_z;
 
-%gyro_x = gyro_x(350:end);
-%gyro_y = gyro_y(350:end);
-%gyro_z = gyro_z(350:end);
+gyro_x = gyro_x(350:end);
+gyro_y = gyro_y(350:end);
+gyro_z = gyro_z(350:end);
 
-%quat_w = quat_w(350:end);
-%quat_x = quat_x(350:end);
-%quat_y = quat_y(350:end);
-%quat_z = quat_z(350:end);
+quat_w = quat_w(350:end);
+quat_x = quat_x(350:end);
+quat_y = quat_y(350:end);
+quat_z = quat_z(350:end);
 
-%numVals = numVals - 350;
+numVals = numVals - 350;
 
 
 theta = cumtrapz(gyro_x)*samplTime;
@@ -110,7 +110,7 @@ psi = cumtrapz(gyro_z)*samplTime;
 
 
 
-for i = 1:numVals
+for i = 1:numVals+1
     % Pitch (rotation about y-axis)
     %theta1(i) = gyro_y(i);
     % Roll (rotation about x-axis)
@@ -173,25 +173,18 @@ end
 
 %% Calculate Displacement and Plot
 t = 0:samplTime:double(numVals)*samplTime;
-t(end) = [];
 % Take the integral of the acceleration to get the velocity
 %v = cumtrapz(a.*9.81) .* sampleTime;
 v = cumtrapz(a_body) .* samplTime;
-plot(v)
-[P_v,S_v] = polyfit([t;t]',[v(:,1) v(:,3)],1); % fit quadratic function to our velocityd
+[P_v,S_v] = polyfit([t;t]',[v(:,1) v(:,3)],2); % fit quadratic function to our velocityd
 Y_v = polyval(P_v,t);
 % Remove average from data
-v(:,1) = v(:,1)- Y_v';
+v(:,1) = v(:,1)-Y_v';
 v(:,3) = v(:,3) - Y_v';
 
 % Take the integral of the velocity to get the displacement
 %u = cumtrapz(v) .* sampleTime;
 u = cumtrapz(v) .* samplTime;
-plot(u)
-[P_u,S_u] = polyfit([t;t]',[u(:,1) u(:,3)],1); % fit line function to our position
-Y_u = polyval(P_u,t);
-u(:,1) = u(:,1) - Y_u';
-u(:,3) = u(:,3) - Y_u';
 
 % % Get the index values for each sample
 % x_t = (0:numVals - 1)';
@@ -372,38 +365,14 @@ k = 127.35;
 d = 3*ft_m;
 ratio = 0.5; %% add user input???
 s = d*ratio;
-v_o = sqrt(-2*g*s*sin(angle)+(4/m)*(.5*k*s^2));
-v_o_f = sqrt(-2*g*s*sin(angle)+(4/m)*(.5*k*s^2)-2*g*((2*ft_m/3)*.7)+2*ft_m*(.4+.2));
+v_o = sqrt(2*g*s*sin(angle)+(4/m)*(.5*k*s^2));
 t_air = (-v_o-sqrt(v_o^2-2*g*y_o))/g;
 t_g = 2.4472;
 %t_air = 2*v_o*sin(angle)/g;
 t_p = 0:samplTime:t_g;
 % Theoretical Motion Eqns
 y = y_o + v_o*sin(angle).*t_p -.5*g*t_p.^2;
-x = v_o*cos(angle)*t_p;
-y_f = y_o + v_o_f*sin(angle).*t_p -.5*g*t_p.^2;
-x_f = v_o_f*cos(angle)*t_p;
-figure('Name','Projectile Motion','NumberTitle','on');
-
-subplot(1,2,1)
-plot(x,y)
-title('Theoretical Pmax(rojectile Motion')
-xlabel('x [m]');
-ylabel('z [m]');
-subplot(1,2,2)
-plot(u(:,1), u(:,3));
-title('Experimental Projectile Motion')
-
-figure('Name','Projectile Motion','NumberTitle','on');
-
-subplot(1,2,1)
-plot(x_f,y_f)
-title('Theoretical Projectile Motion (w/ Friction at Launch)')
-xlabel('x [m]');
-ylabel('z [m]');
-subplot(1,2,2)
-plot(-u(:,1)/1000, u(:,3)/1000);
-title('Experimental Projectile Motion')
+x = v_o*t_p;
 
 %% Find Distance from data
 
